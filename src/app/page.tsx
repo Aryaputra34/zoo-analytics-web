@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Camera, Car, ChevronRight, Store, Ticket, Utensils } from "lucide-react";
 import { latestStatus, listEvents, type Ev } from "@/lib/db";
 import {
   USE_CASES,
@@ -15,7 +15,7 @@ import {
   isOnline,
   todayWib,
 } from "@/lib/util";
-import { Card, Empty, OnlineBadge, PageHeader, SeverityBadge, Table, Tile, Tiles } from "@/components/ui";
+import { Card, Empty, OnlineBadge, PageHeader, SafariHeroBanner, SeverityBadge, Table, Tile, Tiles } from "@/components/ui";
 
 function liveLine(s: Ev) {
   const d = s.data;
@@ -23,11 +23,11 @@ function liveLine(s: Ev) {
     case "cashier_presence":
       return d.state;
     case "restaurant_counter":
-      return `${d.occupancy} / ${d.maxCapacity} people inside`;
+      return `${d.occupancy} / ${d.maxCapacity} orang di dalam dining area`;
     case "vehicle_gate":
-      return `${d.inCount} in · ${d.outCount} out since service start`;
+      return `${d.inCount} masuk · ${d.outCount} keluar dari koridor safari`;
     case "horse_riding":
-      return `${d.activeHorses} ponies in view · ${d.departures ?? 0} departures since service start`;
+      return `${d.activeHorses} kuda dalam pantauan · ${d.departures ?? 0} keberangkatan hari ini`;
     default:
       return describe(s);
   }
@@ -57,55 +57,155 @@ export default async function Overview(props: PageProps<"/">) {
     60;
   const alerts = evs.filter((e) => e.severity !== "info");
   const critical = alerts.filter((e) => e.severity === "critical").length;
+  const onlineCams = statuses.filter((s) => isOnline(s)).length;
 
   return (
     <>
+      {/* Hero Banner with authentic Taman Safari Indonesia panorama */}
+      <SafariHeroBanner
+        date={date}
+        onlineCams={onlineCams}
+        totalEvents={evs.length}
+        todayVehicles={Math.max(0, vIn - vOut)}
+      />
+
       <PageHeader
-        title="Overview"
-        subtitle={isToday ? "Today so far · all times WIB" : `Daily summary for ${date} · all times WIB`}
+        tag="Taman Safari Bogor · Pusat Kendali"
+        title="Ringkasan Operasional AI"
+        subtitle={isToday ? "Pemantauan real-time hari ini · Seluruh waktu WIB (UTC+7)" : `Arsip operasional harian ${date} · Seluruh waktu WIB`}
         date={date}
       />
 
+      {/* KPI Tiles */}
       <Tiles>
         <Tile
-          label="Vehicles entered"
+          label="Kendaraan Masuk (Gate)"
+          icon={<Car aria-hidden />}
           value={fmtNum(vIn)}
-          sub={`${fmtNum(vOut)} exited · ${fmtNum(Math.max(0, vIn - vOut))} still inside`}
+          sub={`${fmtNum(vOut)} keluar · ${fmtNum(Math.max(0, vIn - vOut))} sedang di area Safari`}
         />
-        <Tile label="Pony ride departures" value={fmtNum(dep)} sub={`${fmtNum(ret)} returned`} />
+        <Tile
+          label="Wahana Tunggang Kuda"
+          icon={<Ticket aria-hidden />}
+          value={fmtNum(dep)}
+          sub={`${fmtNum(ret)} kembali · ${fmtNum(Math.max(0, dep - ret))} sedang berkuda`}
+        />
         {isToday && liveRest ? (
           <Tile
-            label="Restaurant now"
+            label="Kapasitas Restoran"
+            icon={<Utensils aria-hidden />}
             value={`${liveRest.data.occupancy}/${liveRest.data.maxCapacity}`}
-            sub={peak ? `Peak today ${peak.data.occupancy} at ${fmtHm(peak.ts)}` : undefined}
+            sub={peak ? `Puncak hari ini ${peak.data.occupancy} org (${fmtHm(peak.ts)})` : "Beban teratur"}
           />
         ) : (
           <Tile
-            label="Restaurant peak"
+            label="Puncak Restoran"
+            icon={<Utensils aria-hidden />}
             value={peak ? fmtNum(peak.data.occupancy) : "—"}
-            sub={peak ? `at ${fmtHm(peak.ts)} · capacity ${peak.data.maxCapacity}` : "No data"}
+            sub={peak ? `Pukul ${fmtHm(peak.ts)} · Kapasitas ${peak.data.maxCapacity}` : "Tidak ada data"}
           />
         )}
         <Tile
-          label="Cashier desk unattended"
+          label="Loket Tanpa Petugas"
+          icon={<Store aria-hidden />}
           value={fmtMin(unattendedMin)}
-          sub={`${fmtNum(alerts.length)} alerts · ${fmtNum(critical)} critical`}
+          sub={`${fmtNum(alerts.length)} alert sistem · ${fmtNum(critical)} kritis`}
         />
       </Tiles>
 
-      <div className="grid gap-4 xl:grid-cols-5">
-        <Card title="Cameras" subtitle={`Online = heartbeat in the last ${(3 * STATUS_SEC) / 60} min`} className="xl:col-span-2">
+      {/* Zone Quick Jump Cards */}
+      <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Link
+          href="/vehicles"
+          className="group flex flex-col justify-between rounded-2xl border border-line bg-surface p-4 shadow-sm transition-all hover:border-lime hover:shadow-md"
+        >
+          <div className="flex items-center justify-between">
+            <span className="flex size-9 items-center justify-center rounded-xl bg-lime/20 text-forest">
+              <Car className="size-4.5" />
+            </span>
+            <ChevronRight className="size-4 text-muted group-hover:translate-x-1 transition-transform" />
+          </div>
+          <div className="mt-3">
+            <div className="text-xs font-bold text-muted">Area Gerbang</div>
+            <div className="text-sm font-black text-forest">Safari Journey ANPR</div>
+          </div>
+        </Link>
+
+        <Link
+          href="/cashier"
+          className="group flex flex-col justify-between rounded-2xl border border-line bg-surface p-4 shadow-sm transition-all hover:border-lime hover:shadow-md"
+        >
+          <div className="flex items-center justify-between">
+            <span className="flex size-9 items-center justify-center rounded-xl bg-lime/20 text-forest">
+              <Store className="size-4.5" />
+            </span>
+            <ChevronRight className="size-4 text-muted group-hover:translate-x-1 transition-transform" />
+          </div>
+          <div className="mt-3">
+            <div className="text-xs font-bold text-muted">Area Loket</div>
+            <div className="text-sm font-black text-forest">Tiket & Mini Train</div>
+          </div>
+        </Link>
+
+        <Link
+          href="/restaurant"
+          className="group flex flex-col justify-between rounded-2xl border border-line bg-surface p-4 shadow-sm transition-all hover:border-lime hover:shadow-md"
+        >
+          <div className="flex items-center justify-between">
+            <span className="flex size-9 items-center justify-center rounded-xl bg-lime/20 text-forest">
+              <Utensils className="size-4.5" />
+            </span>
+            <ChevronRight className="size-4 text-muted group-hover:translate-x-1 transition-transform" />
+          </div>
+          <div className="mt-3">
+            <div className="text-xs font-bold text-muted">Area F&B</div>
+            <div className="text-sm font-black text-forest">Safari Dining Hall</div>
+          </div>
+        </Link>
+
+        <Link
+          href="/rides"
+          className="group flex flex-col justify-between rounded-2xl border border-line bg-surface p-4 shadow-sm transition-all hover:border-lime hover:shadow-md"
+        >
+          <div className="flex items-center justify-between">
+            <span className="flex size-9 items-center justify-center rounded-xl bg-lime/20 text-forest">
+              <Ticket className="size-4.5" />
+            </span>
+            <ChevronRight className="size-4 text-muted group-hover:translate-x-1 transition-transform" />
+          </div>
+          <div className="mt-3">
+            <div className="text-xs font-bold text-muted">Area Rekreasi</div>
+            <div className="text-sm font-black text-forest">Pony Rides Arena</div>
+          </div>
+        </Link>
+      </div>
+
+      {/* Main Grid: Live Camera Network & Alerts Stream */}
+      <div className="grid gap-6 xl:grid-cols-5">
+        {/* Left: Camera List */}
+        <Card
+          title="Status Kamera AI Aktif"
+          subtitle={`Jaringan sensor CCTV AI (Heartbeat setiap ${(STATUS_SEC)} detik)`}
+          className="xl:col-span-2"
+        >
           {statuses.length ? (
-            <ul className="-my-3 divide-y divide-line">
+            <ul className="-my-3 divide-y divide-line/60">
               {statuses.map((s) => {
                 const online = isOnline(s);
                 return (
-                  <li key={s.cameraId} className="flex items-start justify-between gap-3 py-3">
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-medium text-ink">{s.cameraName}</div>
-                      <div className="text-xs text-muted">{USE_CASES[s.useCase] ?? s.useCase}</div>
-                      <div className={`mt-1 text-sm ${online ? "text-ink-2" : "text-muted"}`}>
-                        {online ? liveLine(s) : `Last seen ${dayOf(s.ts) === today ? fmtTime(s.ts) : dayOf(s.ts)}`}
+                  <li key={s.cameraId} className="flex items-start justify-between gap-3 py-4 transition-colors hover:bg-surface-2/30 px-2 rounded-xl">
+                    <div className="min-w-0 flex items-start gap-3">
+                      <div className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl ${
+                        online ? "bg-lime/20 text-forest" : "bg-zinc-100 text-zinc-400"
+                      }`}>
+                        <Camera className="size-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-black text-forest">{s.cameraName}</div>
+                        <div className="text-xs font-bold text-muted">{USE_CASES[s.useCase] ?? s.useCase}</div>
+                        <div className={`mt-1 text-xs font-semibold ${online ? "text-ink" : "text-muted"}`}>
+                          {online ? liveLine(s) : `Terakhir aktif ${dayOf(s.ts) === today ? fmtTime(s.ts) : dayOf(s.ts)}`}
+                        </div>
                       </div>
                     </div>
                     <OnlineBadge online={online} />
@@ -114,31 +214,39 @@ export default async function Overview(props: PageProps<"/">) {
               })}
             </ul>
           ) : (
-            <Empty>No camera has reported yet. Start zoo-monitor, or run npm run seed for demo data.</Empty>
+            <Empty>Belum ada kamera yang mengirim laporan data. Silakan jalankan zoo-monitor atau npm run seed.</Empty>
           )}
         </Card>
 
+        {/* Right: Alerts Feed */}
         <Card
-          title="Latest alerts"
+          title="Peringatan Operasional & Keamanan"
+          subtitle={`Deteksi otomatis kapasitas dan antrean pada ${date}`}
           className="xl:col-span-3"
           actions={
             <Link
               href={`/events${isToday ? "" : `?date=${date}`}`}
-              className="flex items-center gap-1 text-xs text-accent hover:underline"
+              className="inline-flex items-center gap-1 rounded-full bg-lime/20 px-3 py-1 text-xs font-extrabold text-forest hover:bg-lime/30 transition-colors"
             >
-              All events <ArrowRight aria-hidden className="size-3.5" />
+              Lihat Semua Event ({alerts.length}) <ArrowRight aria-hidden className="size-3.5" />
             </Link>
           }
         >
           <Table
-            head={["Time", "Camera", "Alert", "Severity"]}
+            head={["Waktu", "Kamera", "Deteksi / Kejadian", "Tingkat"]}
             rows={alerts
               .slice(0, 10)
-              .map((e) => [fmtTime(e.ts), e.cameraName, describe(e), <SeverityBadge key="s" severity={e.severity} />])}
-            empty={`No alerts on ${date}.`}
+              .map((e) => [
+                fmtTime(e.ts),
+                e.cameraName,
+                describe(e),
+                <SeverityBadge key="s" severity={e.severity} />,
+              ])}
+            empty={`Tidak ada peringatan operasional pada ${date}. Seluruh sistem normal.`}
           />
         </Card>
       </div>
     </>
   );
 }
+

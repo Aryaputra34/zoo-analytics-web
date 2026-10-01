@@ -1,3 +1,4 @@
+import { BellRing, Clock, TrendingUp, Users, Utensils } from "lucide-react";
 import { latestStatus, listEvents } from "@/lib/db";
 import { STATUS_SEC, dateParam, dayRange, describe, fmtHm, fmtMin, fmtNum, fmtTime, isOnline, pct, todayWib } from "@/lib/util";
 import { Card, Empty, OnlineBadge, PageHeader, SeverityBadge, Table, Tile } from "@/components/ui";
@@ -17,11 +18,16 @@ export default async function Restaurant(props: PageProps<"/restaurant">) {
 
   return (
     <>
-      <PageHeader title="Restaurant" subtitle="People counted inside the dining area against its capacity" date={date} />
+      <PageHeader
+        tag="Taman Safari Bogor · Area Kuliner & Restoran"
+        title="Safari Cafe & Rainforest Dining Hall"
+        subtitle="Penghitungan AI okupansi pengunjung di dalam area santap terhadap batas aman (warning) dan batas kapasitas maksimum"
+        date={date}
+      />
 
       {cams.size === 0 && (
         <Card>
-          <Empty>No restaurant camera has reported on {date}.</Empty>
+          <Empty>Belum ada data kamera pemantau restoran pada {date}.</Empty>
         </Card>
       )}
 
@@ -46,45 +52,70 @@ export default async function Restaurant(props: PageProps<"/restaurant">) {
         const chart = [...buckets].map(([t, occupancy]) => ({ time: fmtHm(t), occupancy }));
 
         return (
-          <div key={id} className="mb-6">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h2 className="text-base font-semibold text-ink">{name}</h2>
+          <div key={id} className="mb-8">
+            <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-4 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-xl bg-lime/20 text-forest">
+                  <Utensils className="size-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-black text-forest">{name}</h2>
+                  <div className="text-xs text-muted">ID Sensor Kamera: {id}</div>
+                </div>
+              </div>
               <OnlineBadge online={online} />
             </div>
-            <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+
+            <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
               <Tile
-                label="Inside now"
+                label="Pengunjung Saat Ini"
+                icon={<Users aria-hidden />}
                 value={isToday && online ? `${live!.data.occupancy}` : "—"}
-                sub={isToday && online ? `${pct(live!.data.occupancy, max)} of capacity ${max}` : "Camera offline"}
+                sub={isToday && online ? `${pct(live!.data.occupancy, max)} dari kuota ${max} orang` : "Kamera offline"}
               />
               <Tile
-                label="Peak"
+                label="Beban Puncak Hari Ini"
+                icon={<TrendingUp aria-hidden />}
                 value={peak ? fmtNum(peak.data.occupancy) : "—"}
-                sub={peak ? `at ${fmtHm(peak.ts)}` : "No data"}
+                sub={peak ? `Tercapai pukul ${fmtHm(peak.ts)} WIB` : "Tidak ada data"}
               />
-              <Tile label={`Time at ${warning}+ people`} value={fmtMin(busyMin)} sub="Near or over capacity" />
               <Tile
-                label="Capacity alerts"
+                label={`Waktu di Atas ${warning} Orang`}
+                icon={<Clock aria-hidden />}
+                value={fmtMin(busyMin)}
+                sub="Mendekati / melampaui batas warning"
+              />
+              <Tile
+                label="Peringatan Kapasitas"
+                icon={<BellRing aria-hidden />}
                 value={fmtNum(alerts.length)}
-                sub={`${fmtNum(alerts.filter((a) => a.data.level === "full").length)} at full capacity`}
+                sub={`${fmtNum(alerts.filter((a) => a.data.level === "full").length)} kali mencapai kapasitas penuh`}
               />
             </div>
-            <div className="grid gap-4">
-              <Card title="Occupancy through the day" subtitle="Highest count in each 5-minute window">
+
+            <div className="grid gap-6">
+              <Card
+                title="Kurva Okupansi Pengunjung Sepanjang Hari"
+                subtitle="Jumlah pengunjung tertinggi dalam setiap interval 5 menit"
+              >
                 {chart.length ? (
                   <OccupancyChart data={chart} warning={warning} max={max} />
                 ) : (
-                  <Empty>No occupancy data on {date}.</Empty>
+                  <Empty>Tidak ada data okupansi pada {date}.</Empty>
                 )}
               </Card>
-              <Card title="Capacity alerts" subtitle={alerts.length > 100 ? "Newest 100" : "Newest first"}>
+
+              <Card
+                title="Log Peringatan Kapasitas (Capacity Alerts)"
+                subtitle={alerts.length > 100 ? "Menampilkan 100 peringatan terbaru" : "Diurutkan dari yang terbaru"}
+              >
                 <Table
                   maxH="max-h-72"
-                  head={["Time", "Alert", "Severity"]}
+                  head={["Waktu", "Deskripsi Kejadian", "Tingkat Peringatan"]}
                   rows={alerts
                     .slice(0, 100)
                     .map((e) => [fmtTime(e.ts), describe(e), <SeverityBadge key="s" severity={e.severity} />])}
-                  empty="No capacity alerts."
+                  empty="Tidak ada pelanggaran batas kapasitas pada hari ini. Kapasitas selalu aman."
                 />
               </Card>
             </div>
@@ -94,3 +125,4 @@ export default async function Restaurant(props: PageProps<"/restaurant">) {
     </>
   );
 }
+

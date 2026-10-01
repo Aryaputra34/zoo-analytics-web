@@ -1,3 +1,4 @@
+import { Clock, Hourglass, Ticket, Undo2 } from "lucide-react";
 import Link from "next/link";
 import { listEvents } from "@/lib/db";
 import { byHour, dateParam, dayOf, dayRange, fmtNum, fmtTime, operatingHours, shiftDate, todayWib } from "@/lib/util";
@@ -31,48 +32,61 @@ export default async function Rides(props: PageProps<"/rides">) {
   return (
     <>
       <PageHeader
-        title="Pony rides"
-        subtitle="Every pony crossing the departure line is counted, for checking against ticket sales"
+        tag="Taman Safari Bogor · Wahana Rekreasi Satwa"
+        title="Wahana Tunggang Kuda (Pony Rides)"
+        subtitle="Penghitungan AI tripwire setiap kuda poni yang berangkat & kembali dari lintasan arena untuk audit kesesuaian tiket penjualan POS"
         date={date}
       >
         <CsvLink href={`/api/events?date=${date}&useCase=horse_riding&eventType=horse_crossing`} />
       </PageHeader>
 
       <Tiles>
-        <Tile label="Ride departures" value={fmtNum(dep)} sub="Compare with POS tickets sold" />
-        <Tile label="Returns" value={fmtNum(ret)} />
         <Tile
-          label={isToday ? "Out on a ride now" : "Not seen returning"}
-          value={fmtNum(Math.max(0, dep - ret))}
-          sub={isToday ? "Departures minus returns" : "Departures minus returns at end of day"}
+          label="Keberangkatan Wahana"
+          icon={<Ticket aria-hidden />}
+          value={fmtNum(dep)}
+          sub="Validasi silang tiket kasir POS"
         />
         <Tile
-          label="Busiest hour"
-          value={busiest.departures ? `${busiest.hour}:00` : "—"}
-          sub={busiest.departures ? `${busiest.departures} departures` : "No rides"}
+          label="Kuda Kembali"
+          icon={<Undo2 aria-hidden />}
+          value={fmtNum(ret)}
+          sub="Selesai putaran wahana"
+        />
+        <Tile
+          label={isToday ? "Sedang di Lintasan" : "Selisih Akhir Hari"}
+          icon={<Hourglass aria-hidden />}
+          value={fmtNum(Math.max(0, dep - ret))}
+          sub={isToday ? "Keberangkatan dikurangi kepulangan" : "Kuda belum tercatat kembali saat tutup"}
+        />
+        <Tile
+          label="Jam Terpadat"
+          icon={<Clock aria-hidden />}
+          value={busiest.departures ? `${busiest.hour}:00 WIB` : "—"}
+          sub={busiest.departures ? `${busiest.departures} kali keberangkatan` : "Belum ada aktivitas"}
         />
       </Tiles>
 
-      <div className="mb-4 grid items-start gap-4 lg:grid-cols-3">
-        <Card title="Rides per hour" className="lg:col-span-2">
+      <div className="mb-6 grid items-start gap-6 lg:grid-cols-3">
+        <Card title="Aktivitas Wahana per Jam" subtitle="Grafik keberangkatan vs kepulangan kuda poni" className="lg:col-span-2">
           <HourlyBars
             data={hourly}
             series={[
-              { key: "departures", label: "Departures" },
-              { key: "returns", label: "Returns" },
+              { key: "departures", label: "Berangkat (Departure)" },
+              { key: "returns", label: "Kembali (Return)" },
             ]}
           />
         </Card>
-        <Card title="Last 14 days" subtitle="Daily totals for POS reconciliation">
+        <Card title="Rekapitulasi 14 Hari Terakhir" subtitle="Total harian untuk rekonsiliasi kasir POS">
           <Table
             maxH="max-h-64"
-            head={["Date", "Departures", "Returns"]}
+            head={["Tanggal", "Berangkat", "Kembali"]}
             align={["left", "right", "right"]}
             rows={days.map((r) => [
               <Link
                 key="d"
                 href={r.d === todayWib() ? "/rides" : `/rides?date=${r.d}`}
-                className={`hover:underline ${r.d === date ? "font-semibold text-accent" : ""}`}
+                className={`font-bold transition-colors hover:text-lime-dark hover:underline ${r.d === date ? "font-extrabold text-forest" : "text-ink-2"}`}
               >
                 {r.d}
               </Link>,
@@ -83,24 +97,35 @@ export default async function Rides(props: PageProps<"/rides">) {
         </Card>
       </div>
 
-      <Card title="Crossing log" subtitle={evs.length > 200 ? "Newest 200" : "Newest first"}>
+      <Card
+        title="Log Deteksi Lintasan Kuda (Crossing Stream)"
+        subtitle={evs.length > 200 ? "Menampilkan 200 lintasan terbaru" : "Diurutkan dari yang terbaru"}
+      >
         <Table
-          head={["Time", "Direction", "Camera", "Track #"]}
+          head={["Waktu", "Arah Lintasan", "Kamera CCTV", "ID Objek Tracker"]}
           rows={evs
             .slice(0, 200)
             .map((e) => [
               fmtTime(e.ts),
-              e.data.direction === "DEPARTURE" ? "↗ Departure" : "↙ Return",
+              e.data.direction === "DEPARTURE" ? (
+                <span key="d" className="inline-flex items-center gap-1 font-bold text-forest">
+                  ↗ Berangkat
+                </span>
+              ) : (
+                <span key="d" className="inline-flex items-center gap-1 font-bold text-muted">
+                  ↙ Kembali
+                </span>
+              ),
               e.cameraName,
               <Mono key="t">{e.data.trackerId ?? "—"}</Mono>,
             ])}
-          empty={`No pony crossings on ${date}.`}
+          empty={`Tidak ada lintasan wahana kuda pada ${date}.`}
         />
         <Note>
-          Counts come from line crossings, not from unique tracked objects (one pony can get several track numbers). The track #
-          only helps find the matching clip in Nx Witness.
+          Penghitungan berasal dari garis deteksi tripwire AI kamera. ID tracker membantu pencarian rekaman klip video di VMS (Nx Witness).
         </Note>
       </Card>
     </>
   );
 }
+

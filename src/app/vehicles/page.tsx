@@ -1,4 +1,4 @@
-import { ArrowDownLeft, ArrowUpRight, Search } from "lucide-react";
+import { BadgeCheck, LogIn, LogOut, ScanLine, Search } from "lucide-react";
 import { listEvents } from "@/lib/db";
 import { byHour, dateParam, dayRange, fmtNum, fmtTime, operatingHours, pct, str, todayWib } from "@/lib/util";
 import { Badge, Card, CsvLink, Mono, Note, PageHeader, Table, Tile, Tiles } from "@/components/ui";
@@ -12,6 +12,7 @@ export default async function Vehicles(props: PageProps<"/vehicles">) {
   const evs = await listEvents({ from, to, useCase: "vehicle_gate", eventType: "vehicle_crossing" });
 
   const entries = evs.filter((e) => e.data.direction === "ENTRY");
+  const exits = evs.filter((e) => e.data.direction === "EXIT");
   const read = evs.filter((e) => e.data.plate && e.data.plate !== "UNIDENTIFIED");
   const valid = read.filter((e) => e.data.plateValid);
 
@@ -35,110 +36,128 @@ export default async function Vehicles(props: PageProps<"/vehicles">) {
   return (
     <>
       <PageHeader
-        title="Vehicle gate"
-        subtitle="Entries and exits counted at the gate tripwire, with plate reading (ANPR)"
+        tag="Taman Safari Bogor · Gerbang Utama 1 & 2"
+        title="Safari Journey · Gerbang Kendaraan"
+        subtitle="Penghitungan otomatis kendaraan masuk & keluar koridor satwa liar dengan pengenalan plat nomor AI (ANPR)"
         date={date}
       >
         <CsvLink href={`/api/events?date=${date}&useCase=vehicle_gate&eventType=vehicle_crossing`} />
       </PageHeader>
 
       <Tiles>
-        <Tile label="Entries" value={fmtNum(entries.length)} icon={<ArrowDownLeft aria-hidden className="size-4 text-s1" />} />
         <Tile
-          label="Exits"
-          value={fmtNum(evs.length - entries.length)}
-          icon={<ArrowUpRight aria-hidden className="size-4 text-s2" />}
+          label="Kendaraan Masuk (In)"
+          value={fmtNum(entries.length)}
+          icon={<LogIn aria-hidden />}
+          sub={`${fmtNum(Math.max(0, entries.length - exits.length))} masih di dalam area Safari`}
         />
         <Tile
-          label="Plates read"
+          label="Kendaraan Keluar (Out)"
+          value={fmtNum(exits.length)}
+          icon={<LogOut aria-hidden />}
+          sub="Menuju area rekreasi & parkir"
+        />
+        <Tile
+          label="Plat Terbaca (ANPR)"
+          icon={<ScanLine aria-hidden />}
           value={pct(read.length, evs.length)}
-          sub={`${fmtNum(read.length)} of ${fmtNum(evs.length)} crossings`}
+          sub={`${fmtNum(read.length)} dari ${fmtNum(evs.length)} kendaraan`}
         />
         <Tile
-          label="Valid Indonesian format"
+          label="Format Plat Indonesia Sah"
+          icon={<BadgeCheck aria-hidden />}
           value={pct(valid.length, read.length)}
-          sub={`${fmtNum(valid.length)} of ${fmtNum(read.length)} plates read`}
+          sub={`${fmtNum(valid.length)} dari ${fmtNum(read.length)} plat tervalidasi`}
         />
       </Tiles>
 
-      <div className="mb-4 grid gap-4 lg:grid-cols-3">
-        <Card title="Crossings per hour" className="lg:col-span-2">
+      <div className="mb-6 grid gap-6 lg:grid-cols-3">
+        <Card title="Volume Lintasan Kendaraan per Jam" subtitle="Distribusi kepadatan arus masuk & keluar per jam" className="lg:col-span-2">
           <HourlyBars
             data={hourly}
             series={[
-              { key: "entries", label: "Entries" },
-              { key: "exits", label: "Exits" },
+              { key: "entries", label: "Masuk (Entry)" },
+              { key: "exits", label: "Keluar (Exit)" },
             ]}
           />
         </Card>
-        <Card title="By vehicle type">
+        <Card title="Klasifikasi Jenis Kendaraan" subtitle="Tipe moda transportasi pengunjung">
           <Table
-            head={["Type", "In", "Out", "Share"]}
+            head={["Jenis", "Masuk", "Keluar", "Pangsa"]}
             align={["left", "right", "right", "right"]}
             rows={types.map(([t, c]) => [
-              <span key="t" className="capitalize">
+              <span key="t" className="font-extrabold capitalize text-forest">
                 {t}
               </span>,
               fmtNum(c.in),
               fmtNum(c.out),
-              pct(c.in + c.out, evs.length),
+              <span key="s" className="font-bold text-lime-dark dark:text-lime">
+                {pct(c.in + c.out, evs.length)}
+              </span>,
             ])}
-            empty="No vehicles on this day."
+            empty="Tidak ada lintasan kendaraan pada hari ini."
           />
         </Card>
       </div>
 
       <Card
-        title="Plate log"
-        subtitle={`${q ? `${fmtNum(matches.length)} matching “${q}” · ` : ""}newest first${matches.length > 200 ? ", showing 200" : ""}`}
+        title="Log Deteksi Plat Nomor Kendaraan (ANPR)"
+        subtitle={`${q ? `${fmtNum(matches.length)} plat sesuai pencarian “${q}” · ` : ""}Data deteksi terbaru${matches.length > 200 ? " (menampilkan 200 data teratas)" : ""}`}
         actions={
           <form className="flex items-center gap-1.5" role="search">
             {date !== todayWib() && <input type="hidden" name="date" value={date} />}
-            <label className="relative">
-              <span className="sr-only">Search plate</span>
-              <Search aria-hidden className="pointer-events-none absolute top-2 left-2 size-4 text-muted" />
+            <div className="relative">
+              <Search aria-hidden className="pointer-events-none absolute top-2.5 left-3 size-4 text-muted" />
               <input
                 name="q"
                 defaultValue={q}
-                placeholder="Search plate, e.g. B 1234"
-                className="h-8 w-56 rounded-md border border-line bg-surface pr-2 pl-8 text-sm text-ink placeholder:text-muted"
+                placeholder="Cari plat nomor, cth: B 1234, F 88..."
+                className="h-9 w-60 rounded-full border border-line bg-surface pr-3 pl-9 text-xs font-bold text-forest placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-lime"
               />
-            </label>
+            </div>
           </form>
         }
       >
         <Table
-          head={["Time", "Plate", "Type", "Direction", "OCR confidence", "Format"]}
+          head={["Waktu", "Plat Nomor", "Tipe", "Arah", "Akurasi OCR", "Status"]}
           align={["left", "left", "left", "left", "right", "left"]}
           rows={matches.slice(0, 200).map((e) => [
             fmtTime(e.ts),
             <Mono key="p">{e.data.plate}</Mono>,
-            <span key="t" className="capitalize">
+            <span key="t" className="capitalize font-semibold text-ink-2">
               {e.data.vehicleType}
             </span>,
-            e.data.direction === "ENTRY" ? "↙ Entry" : "↗ Exit",
+            e.data.direction === "ENTRY" ? (
+              <span key="d" className="inline-flex items-center gap-1 font-bold text-forest">
+                ↙ Masuk
+              </span>
+            ) : (
+              <span key="d" className="inline-flex items-center gap-1 font-bold text-muted">
+                ↗ Keluar
+              </span>
+            ),
             e.data.plate === "UNIDENTIFIED" ? "—" : pct(Number(e.data.ocrConfidence) || 0, 1),
             e.data.plate === "UNIDENTIFIED" ? (
               <Badge key="v" tone="off">
-                Not read
+                Tidak Terbaca
               </Badge>
             ) : e.data.plateValid ? (
               <Badge key="v" tone="good">
-                Valid
+                Sah SAMSAT
               </Badge>
             ) : (
               <Badge key="v" tone="warn">
-                Check
+                Perlu Cek
               </Badge>
             ),
           ])}
-          empty={q ? `No plate matching “${q}” on ${date}.` : `No vehicles on ${date}.`}
+          empty={q ? `Tidak ada plat sesuai “${q}” pada ${date}.` : `Tidak ada kendaraan pada ${date}.`}
         />
         <Note>
-          “Valid” means the text matches the Indonesian plate format (e.g. B 1234 ABC). “Check” plates were read but may be OCR
-          errors.
+          Plat &quot;Sah SAMSAT&quot; berarti susunan karakter sesuai pola registrasi kepolisian Republik Indonesia (contoh: B 1234 ABC, F 8888 SAFARI).
         </Note>
       </Card>
     </>
   );
 }
+

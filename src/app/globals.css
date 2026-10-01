@@ -1,47 +1,108 @@
 @import "tailwindcss";
 
-/* Design tokens. Chart + status colours follow the validated dataviz reference palette
-   (CVD-safe series order; status always shown with icon + label, never colour alone). */
-:root {
+/* Taman Safari Indonesia Official Theme (tamansafari.com)
+   Brand Primary: #82bb3a (Safari Lime Green)
+   Brand Accent: #0d542e (Deep Jungle Forest Green)
+   Background: #f8f7f2 (Parchment Ivory)
+   Dark Forest: #062916 (Midnight Canopy)
+   Gold: #f5a623 (Safari Sun)
+*/
+:root,
+[data-theme="light"] {
   color-scheme: light;
-  --bg: #f4f4f1;
-  --surface: #fcfcfb;
-  --surface-2: #f0efec;
-  --ink: #0b0b0b;
-  --ink-2: #52514e;
-  --muted: #6f6d68;
-  --line: rgba(11, 11, 11, 0.1);
-  --grid: #e1e0d9;
-  --axis: #c3c2b7;
-  --accent: #2a78d6;
-  --s1: #2a78d6;
-  --s2: #eb6834;
-  --s3: #1baf7a;
-  --s4: #eda100;
-  --good: #0ca30c;
-  --warn: #fab219;
-  --crit: #d03b3b;
-  --off: #a3a19b;
+  --bg: #f8f7f2;
+  --surface: #ffffff;
+  --surface-2: #f1ede3;
+  --surface-3: #e6dfd2;
+  --ink: #0d2818;
+  --ink-2: #244b32;
+  --muted: #5e7a68;
+  --line: rgba(13, 84, 46, 0.12);
+  --grid: #e8e3d6;
+  --axis: #b8b19e;
+  --accent: #0d542e;
+  --accent-hover: #083d21;
+  --lime: #82bb3a;
+  --lime-2: #92cd44;
+  --lime-soft: rgba(130, 187, 58, 0.16);
+  --forest: #0d542e;
+  --forest-dark: #062916;
+  --side: #083d21;
+  --side-ink: #ffffff;
+  --side-ink-2: #cde4d3;
+  --s1: #0d542e;
+  --s2: #82bb3a;
+  --s3: #f5a623;
+  --s4: #2080c4;
+  --good: #22a347;
+  --warn: #f5a623;
+  --crit: #d9383a;
+  --off: #8d9f95;
+}
+
+[data-theme="dark"],
+.dark {
+  color-scheme: dark;
+  --bg: #07190f;
+  --surface: #0e2719;
+  --surface-2: #143522;
+  --surface-3: #1a422b;
+  --ink: #f0f7f2;
+  --ink-2: #b8d4c2;
+  --muted: #8aa995;
+  --line: rgba(130, 187, 58, 0.20);
+  --grid: #1a3c28;
+  --axis: #2a5538;
+  --accent: #82bb3a;
+  --accent-hover: #92cd44;
+  --lime: #82bb3a;
+  --lime-2: #92cd44;
+  --lime-soft: rgba(130, 187, 58, 0.22);
+  --forest: #96d649; /* High-contrast luminous green in dark mode */
+  --forest-dark: #051a0e;
+  --side: #051a0e;
+  --side-ink: #ffffff;
+  --side-ink-2: #b8d4c2;
+  --s1: #82bb3a;
+  --s2: #3a8ee0;
+  --s3: #f5a623;
+  --s4: #c4508c;
+  --good: #38c863;
+  --warn: #f5a623;
+  --crit: #e84c4e;
+  --off: #6b7f71;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
     color-scheme: dark;
-    --bg: #0d0d0d;
-    --surface: #1a1a19;
-    --surface-2: #242423;
-    --ink: #ffffff;
-    --ink-2: #c3c2b7;
-    --muted: #9d9b94;
-    --line: rgba(255, 255, 255, 0.1);
-    --grid: #2c2c2a;
-    --axis: #383835;
-    --accent: #3987e5;
-    --s1: #3987e5;
-    --s2: #d95926;
-    --s3: #199e70;
-    --s4: #c98500;
-    --off: #6b6a65;
+    --bg: #07190f;
+    --surface: #0e2719;
+    --surface-2: #143522;
+    --surface-3: #1a422b;
+    --ink: #f0f7f2;
+    --ink-2: #b8d4c2;
+    --muted: #8aa995;
+    --line: rgba(130, 187, 58, 0.20);
+    --grid: #1a3c28;
+    --axis: #2a5538;
+    --accent: #82bb3a;
+    --accent-hover: #92cd44;
+    --lime: #82bb3a;
+    --lime-2: #92cd44;
+    --lime-soft: rgba(130, 187, 58, 0.22);
+    --forest: #96d649;
+    --forest-dark: #051a0e;
+    --side: #051a0e;
+    --side-ink: #ffffff;
+    --side-ink-2: #b8d4c2;
+    --s1: #82bb3a;
+    --s2: #3a8ee0;
+    --s3: #f5a623;
+    --s4: #c4508c;
+    --good: #38c863;
+    --warn: #f5a623;
+    --crit: #e84c4e;
   }
 }
 
@@ -49,17 +110,70 @@
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-accent: var(--accent);
+  --color-lime: var(--lime);
+  --color-lime-2: var(--lime-2);
+  --color-lime-soft: var(--lime-soft);
+  --color-forest: var(--forest);
+  --color-forest-dark: var(--forest-dark);
+  --color-side: var(--side);
+  --color-side-ink: var(--side-ink);
+  --color-side-ink-2: var(--side-ink-2);
   --color-s1: var(--s1);
   --color-s2: var(--s2);
+  --color-s3: var(--s3);
+  --color-s4: var(--s4);
   --color-good: var(--good);
   --color-warn: var(--warn);
   --color-crit: var(--crit);
   --color-off: var(--off);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-nunito);
   --font-mono: var(--font-geist-mono);
 }
+
+/* Taman Safari Zebra stripe accent */
+.zebra {
+  background: repeating-linear-gradient(118deg, var(--lime) 0 16px, var(--lime-2) 16px 28px);
+}
+
+/* Safari pulse for active cameras */
+@keyframes safariPulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 163, 71, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 7px rgba(34, 163, 71, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 163, 71, 0);
+  }
+}
+
+.camera-pulse {
+  animation: safariPulse 2s infinite;
+}
+
+/* Smooth custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+

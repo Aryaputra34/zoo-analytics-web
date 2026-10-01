@@ -1,3 +1,4 @@
+import { BellRing, Hourglass, Timer, Users } from "lucide-react";
 import { latestStatus, listEvents, type Ev } from "@/lib/db";
 import {
   STATUS_SEC,
@@ -46,14 +47,15 @@ export default async function Cashier(props: PageProps<"/cashier">) {
   return (
     <>
       <PageHeader
-        title="Cashier desks"
-        subtitle="Alerts when a desk is left unattended or a customer waits with no cashier"
+        tag="Taman Safari Bogor · Area Plaza Tiket & Loket"
+        title="Loket Tiket & Mini Train"
+        subtitle="Pemantauan AI kehadiran petugas loket kasir, peringatan loket tanpa staf, dan deteksi antrean pengunjung"
         date={date}
       />
 
       {deskList.length === 0 && (
         <Card>
-          <Empty>No cashier camera has reported on {date}.</Empty>
+          <Empty>Belum ada laporan kamera CCTV loket pada {date}.</Empty>
         </Card>
       )}
 
@@ -69,8 +71,8 @@ export default async function Cashier(props: PageProps<"/cashier">) {
           <Card
             key={id}
             title={name}
-            subtitle={id}
-            className="mb-4"
+            subtitle={`ID Sensor: ${id}`}
+            className="mb-6"
             actions={
               <div className="flex items-center gap-2">
                 {isToday && status && online && <Badge tone={stateTone(status.data.state)}>{status.data.state}</Badge>}
@@ -80,20 +82,28 @@ export default async function Cashier(props: PageProps<"/cashier">) {
           >
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               <Tile
-                label="Time unattended"
+                label="Durasi Loket Kosong"
+                icon={<Timer aria-hidden />}
                 value={fmtMin((mine.filter(absent).length * STATUS_SEC) / 60)}
-                sub="Sampled every 30 s"
+                sub="Sampling tiap 30 detik"
               />
               <Tile
-                label="Unattended alerts"
+                label="Peringatan Tanpa Petugas"
+                icon={<BellRing aria-hidden />}
                 value={fmtNum(unattended.length)}
-                sub={`Longest absence ${fmtMin(longestAbsence / 60)}`}
+                sub={`Kosong terlama ${fmtMin(longestAbsence / 60)}`}
               />
-              <Tile label="Customer waiting alerts" value={fmtNum(waiting.length)} sub={`Longest wait ${longestWait}s`} />
               <Tile
-                label="Right now"
-                value={isToday && online ? `${status!.data.clerkCount} / ${status!.data.visitorCount}` : "—"}
-                sub={isToday && online ? "cashiers / customers at desk" : "Camera offline"}
+                label="Pengunjung Menunggu"
+                icon={<Hourglass aria-hidden />}
+                value={fmtNum(waiting.length)}
+                sub={`Menunggu terlama ${longestWait} detik`}
+              />
+              <Tile
+                label="Kondisi Saat Ini"
+                icon={<Users aria-hidden />}
+                value={isToday && online ? `${status!.data.clerkCount} staf / ${status!.data.visitorCount} antre` : "—"}
+                sub={isToday && online ? "Petugas & Pengunjung di loket" : "Kamera Offline"}
               />
             </div>
           </Card>
@@ -101,23 +111,27 @@ export default async function Cashier(props: PageProps<"/cashier">) {
       })}
 
       {deskList.length > 0 && (
-        <div className="grid gap-4">
-          <Card title="Minutes unattended per hour">
-            <HourlyBars data={hourly} series={deskList.map(([id, name]) => ({ key: id, label: name }))} unit=" min" />
+        <div className="grid gap-6">
+          <Card title="Menit Loket Tanpa Petugas per Jam" subtitle="Grafik akumulasi durasi ketidakhadiran staf loket per jam">
+            <HourlyBars data={hourly} series={deskList.map(([id, name]) => ({ key: id, label: name }))} unit=" mnt" />
           </Card>
-          <Card title="Alert timeline" subtitle={alerts.length > 200 ? "Newest 200" : "Newest first"}>
+          <Card
+            title="Kronologi Peringatan Loket (Alerts)"
+            subtitle={alerts.length > 200 ? "Menampilkan 200 insiden terbaru" : "Diurutkan dari yang terbaru"}
+          >
             <Table
               maxH="max-h-96"
-              head={["Time", "Desk", "Alert", "Severity"]}
+              head={["Waktu", "Loket", "Deteksi / Kejadian", "Tingkat"]}
               rows={alerts
                 .slice(0, 200)
                 .map((e) => [fmtTime(e.ts), e.cameraName, describe(e), <SeverityBadge key="s" severity={e.severity} />])}
-              empty={`No alerts on ${date}.`}
+              empty={`Tidak ada peringatan loket pada ${date}. Pelayanan prima.`}
             />
-            <Note>An alert repeats every 30 s while the situation lasts, so one long absence produces several alerts.</Note>
+            <Note>Peringatan dikirim berulang setiap 30 detik selama kondisi loket kosong atau pengunjung menunggu tetap berlangsung.</Note>
           </Card>
         </div>
       )}
     </>
   );
 }
+

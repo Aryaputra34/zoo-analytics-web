@@ -29,11 +29,11 @@ export function NavLinks() {
             key={href}
             href={href}
             aria-current={active ? "page" : undefined}
-            className={`flex shrink-0 items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors ${
-              active ? "bg-surface-2 font-medium text-ink" : "text-ink-2 hover:bg-surface-2 hover:text-ink"
+            className={`flex shrink-0 items-center gap-2.5 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
+              active ? "bg-lime text-forest" : "text-side-ink-2 hover:bg-white/10 hover:text-side-ink"
             }`}
           >
-            <Icon aria-hidden className={`size-4 ${active ? "text-accent" : ""}`} />
+            <Icon aria-hidden className="size-4" />
             {label}
           </Link>
         );
@@ -62,12 +62,13 @@ export function AutoRefresh() {
     <button
       type="button"
       onClick={() => setPaused((p) => !p)}
-      className="flex items-center gap-2 rounded-md border border-line px-2.5 py-1.5 text-xs text-ink-2 hover:bg-surface-2 cursor-pointer"
+      className="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-bold text-white transition-colors hover:bg-white/10"
       aria-label={paused ? "Resume auto-refresh" : "Pause auto-refresh"}
     >
-      {paused ? <Play aria-hidden className="size-3.5" /> : <Pause aria-hidden className="size-3.5" />}
-      <span className={`size-1.5 rounded-full ${paused ? "bg-off" : "bg-good"}`} aria-hidden />
-      {paused ? "Paused" : `Live${last ? ` · ${last}` : ""}`}
+      {paused ? <Play aria-hidden className="size-3 text-zinc-300" /> : <Pause aria-hidden className="size-3 text-lime" />}
+      <span className={`size-2 rounded-full ${paused ? "bg-zinc-400" : "bg-lime camera-pulse"}`} aria-hidden />
+      <span className="text-[11px] font-extrabold">{paused ? "Sync Paused" : "Live Sync"}</span>
+      {!paused && last && <span className="hidden sm:inline text-white/70 text-[10px]">· {last} WIB</span>}
     </button>
   );
 }
@@ -86,7 +87,7 @@ export function DatePicker({ date, today }: { date: string; today: string }) {
     const qs = p.toString();
     return qs ? `${path}?${qs}` : path;
   };
-  const btn = "grid size-8 place-items-center rounded-md border border-line text-ink-2 hover:bg-surface-2";
+  const btn = "grid size-9 place-items-center rounded-full border border-line bg-surface text-forest hover:bg-lime/20 hover:border-lime/60 shadow-sm transition-colors";
   return (
     <div className="flex items-center gap-1.5">
       <Link href={href(addDays(date, -1))} className={btn} aria-label="Previous day">
@@ -98,50 +99,52 @@ export function DatePicker({ date, today }: { date: string; today: string }) {
         value={date}
         max={today}
         onChange={(e) => e.target.value && router.push(href(e.target.value))}
-        className="h-8 rounded-md border border-line bg-surface px-2 text-sm text-ink"
+        className="h-9 rounded-full border border-line bg-surface px-3 text-xs font-extrabold text-forest shadow-sm focus:outline-none focus:ring-2 focus:ring-lime"
       />
       {date < today ? (
         <Link href={href(addDays(date, 1))} className={btn} aria-label="Next day">
           <ChevronRight aria-hidden className="size-4" />
         </Link>
       ) : (
-        <span className={`${btn} opacity-40`} aria-hidden>
+        <span className={`${btn} opacity-40 cursor-not-allowed`} aria-hidden>
           <ChevronRight className="size-4" />
         </span>
       )}
       {date !== today && (
         <Link
           href={href(today)}
-          className="h-8 rounded-md border border-line px-2.5 text-sm leading-8 text-ink-2 hover:bg-surface-2"
+          className="h-9 rounded-full bg-forest text-lime px-4 text-xs leading-9 font-extrabold shadow-sm hover:bg-forest-dark transition-colors"
         >
-          Today
+          Today · Hari Ini
         </Link>
       )}
     </div>
   );
 }
 
-const axis = { fontSize: 12, fill: "var(--muted)" };
+const axis = { fontSize: 11, fill: "var(--muted)", fontWeight: 600 };
 const tooltipStyle = {
   contentStyle: {
-    background: "var(--surface)",
-    border: "1px solid var(--line)",
-    borderRadius: 8,
+    background: "#0d542e",
+    border: "1px solid rgba(130, 187, 58, 0.4)",
+    borderRadius: 14,
     fontSize: 12,
-    color: "var(--ink)",
+    color: "#ffffff",
+    boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
+    padding: "8px 12px",
   },
-  labelStyle: { color: "var(--ink-2)" },
-  itemStyle: { color: "var(--ink)" },
-  cursor: { fill: "var(--surface-2)" },
+  labelStyle: { color: "#82bb3a", fontWeight: "bold", marginBottom: "4px" },
+  itemStyle: { color: "#ffffff", fontSize: "11px", fontWeight: "bold" },
+  cursor: { fill: "rgba(130, 187, 58, 0.08)" },
 };
 
 function Legend({ series }: { series: { label: string; color: string }[] }) {
   if (series.length < 2) return null;
   return (
-    <div className="mb-2 flex flex-wrap gap-4 text-xs text-ink-2">
+    <div className="mb-3 flex flex-wrap gap-4 text-xs font-extrabold text-forest">
       {series.map((s) => (
-        <span key={s.label} className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-sm" style={{ background: s.color }} aria-hidden />
+        <span key={s.label} className="flex items-center gap-1.5 rounded-full bg-surface-2 px-2.5 py-1 border border-line">
+          <span className="size-2.5 rounded-full shadow-sm" style={{ background: s.color }} aria-hidden />
           {s.label}
         </span>
       ))}
@@ -149,8 +152,8 @@ function Legend({ series }: { series: { label: string; color: string }[] }) {
   );
 }
 
-// Fixed categorical order (CVD-validated); more than 4 series should be split into separate charts.
-const SERIES_COLORS = ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)"];
+// Fixed categorical order with official Taman Safari brand colors
+const SERIES_COLORS = ["#0d542e", "#82bb3a", "#f5a623", "#2080c4"];
 
 export function HourlyBars({
   data,
@@ -161,14 +164,14 @@ export function HourlyBars({
   series: { key: string; label: string }[];
   unit?: string;
 }) {
-  const s = series.map((x, i) => ({ ...x, color: SERIES_COLORS[i] }));
+  const s = series.map((x, i) => ({ ...x, color: SERIES_COLORS[i % SERIES_COLORS.length] }));
   return (
     <div>
       <Legend series={s} />
-      <div className="h-60">
-        <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 320, height: 240 }}>
-          <BarChart data={data} barGap={2} margin={{ top: 4, right: 4, bottom: 0, left: -12 }}>
-            <CartesianGrid vertical={false} stroke="var(--grid)" />
+      <div className="h-64">
+        <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 320, height: 256 }}>
+          <BarChart data={data} barGap={3} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
+            <CartesianGrid vertical={false} stroke="var(--grid)" strokeDasharray="3 3" />
             <XAxis
               dataKey="hour"
               tick={axis}
@@ -188,8 +191,8 @@ export function HourlyBars({
                 dataKey={x.key}
                 name={x.label}
                 fill={x.color}
-                maxBarSize={24}
-                radius={[4, 4, 0, 0]}
+                maxBarSize={28}
+                radius={[6, 6, 0, 0]}
                 isAnimationActive={false}
               />
             ))}
@@ -213,31 +216,38 @@ export function OccupancyChart({
   return (
     <div className="h-64">
       <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 320, height: 256 }}>
-        <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
-          <CartesianGrid vertical={false} stroke="var(--grid)" />
+        <AreaChart data={data} margin={{ top: 12, right: 12, bottom: 0, left: -12 }}>
+          <defs>
+            <linearGradient id="safariGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#82bb3a" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="#0d542e" stopOpacity={0.02} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid vertical={false} stroke="var(--grid)" strokeDasharray="3 3" />
           <XAxis dataKey="time" tick={axis} tickLine={false} axisLine={{ stroke: "var(--axis)" }} minTickGap={32} />
           <YAxis tick={axis} tickLine={false} axisLine={false} domain={[0, top]} allowDecimals={false} />
           <Tooltip {...tooltipStyle} cursor={{ stroke: "var(--axis)" }} labelFormatter={(t) => `${t} WIB (5-min peak)`} />
           <ReferenceLine
             y={warning}
-            stroke="var(--warn)"
-            label={{ value: `Warning ${warning}`, position: "insideTopLeft", fontSize: 11, fill: "var(--ink-2)" }}
+            stroke="#f5a623"
+            strokeDasharray="4 4"
+            label={{ value: `Warning ${warning}`, position: "insideTopLeft", fontSize: 11, fill: "#f5a623", fontWeight: 700 }}
           />
           <ReferenceLine
             y={max}
-            stroke="var(--crit)"
-            label={{ value: `Max ${max}`, position: "insideTopLeft", fontSize: 11, fill: "var(--ink-2)" }}
+            stroke="#d9383a"
+            strokeDasharray="4 4"
+            label={{ value: `Max Limit ${max}`, position: "insideTopLeft", fontSize: 11, fill: "#d9383a", fontWeight: 700 }}
           />
           <Area
             type="monotone"
             dataKey="occupancy"
-            name="People"
-            stroke="var(--s1)"
-            strokeWidth={2}
-            fill="var(--s1)"
-            fillOpacity={0.1}
+            name="Dining Guests"
+            stroke="#0d542e"
+            strokeWidth={3}
+            fill="url(#safariGradient)"
             dot={false}
-            activeDot={{ r: 4, stroke: "var(--surface)", strokeWidth: 2 }}
+            activeDot={{ r: 5, stroke: "#ffffff", strokeWidth: 2, fill: "#82bb3a" }}
             isAnimationActive={false}
           />
         </AreaChart>
@@ -245,3 +255,4 @@ export function OccupancyChart({
     </div>
   );
 }
+
