@@ -1,74 +1,89 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
-import { mockRecentEvents, initialSummary } from '@/lib/mockData';
-import { AnalyticsEvent } from '@/types/analytics';
+import { timingSafeEqual } from "node:crypto";
+import { insertEvents, listEvents, type Ev, type Severity } from "@/lib/db";
+import { dateParam, dayRange, fmtDateTime } from "@/lib/util";
 
-// In-memory telemetry buffer for demonstration & local edge operation
-let eventStore: AnalyticsEvent[] = [...mockRecentEvents];
-let currentSummary = { ...initialSummary };
+const SEVERITIES = new Set(["info", "warning", "critical"]);
+const isStr = (v: unknown, max = 200): v is string => typeof v === "string" && v.length > 0 && v.length <= max;
 
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const useCase = searchParams.get('useCase');
-  const limit = parseInt(searchParams.get('limit') || '50', 10);
-
-  let filtered = eventStore;
-  if (useCase && useCase !== 'all') {
-    filtered = filtered.filter(e => e.useCase === useCase);
-  }
-
-  return NextResponse.json({
-    success: true,
-    summary: currentSummary,
-    totalEvents: filtered.length,
-    events: filtered.slice(0, limit)
-  });
+function authorized(req: Request) {
+  const key = process.env.INGEST_API_KEY;
+  if (!key) return true;
+  const got = Buffer.from(req.headers.get("authorization") ?? "");
+  const want = Buffer.from(`Bearer ${key}`);
+  return got.length === want.length && timingSafeEqual(got, want);
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const incoming: AnalyticsEvent[] = Array.isArray(body.events) ? body.events : [body];
+// Ingest from zoo-monitor's AnalyticsDispatcher: {events: Event[]}.
+// Invalid events are skipped (not rejected) so one bad event never makes the sender retry a batch forever.
+export async function POST(req: Request) {
+  if (!authorized(req)) return Response.json({ error: "unauthorized" }, { status: 401 });
+  const body = await req.json().catch(() => null);
+  const raw: unknown[] = Array.isArray(body?.events) ? body.events : [];
+  if (raw.length > 10_000) return Response.json({ error: "too many events (max 10000)" }, { status: 413 });
 
-    if (!incoming.length) {
-      return NextResponse.json({ success: false, error: 'No events provided' }, { status: 400 });
-    }
-
-    for (const ev of incoming) {
-      // Prepend to event store (latest first)
-      eventStore.unshift(ev);
-      if (eventStore.length > 500) {
-        eventStore.pop();
-      }
-
-      // Update in-memory aggregate metrics based on event useCase
-      if (ev.useCase === 'vehicle_gate' && ev.data) {
-        const d = ev.data as any;
-        if (d.direction === 'ENTRY') currentSummary.vehiclesIn += 1;
-        if (d.direction === 'EXIT') currentSummary.vehiclesOut += 1;
-        currentSummary.totalVehiclesToday = currentSummary.vehiclesIn + currentSummary.vehiclesOut;
-      } else if (ev.useCase === 'restaurant_counter' && ev.data) {
-        const d = ev.data as any;
-        currentSummary.restaurantCurrentOccupancy = d.currentOccupancy ?? currentSummary.restaurantCurrentOccupancy;
-        currentSummary.restaurantStatus = d.status ?? currentSummary.restaurantStatus;
-      } else if (ev.useCase === 'horse_riding' && ev.data) {
-        const d = ev.data as any;
-        currentSummary.horseRidersAudited = d.dailyCumulativeRiders ?? (currentSummary.horseRidersAudited + 1);
-        currentSummary.horseReconciliationVariance = currentSummary.horseRidersAudited - currentSummary.horsePosTicketsSold;
-      } else if (ev.useCase === 'feeding_hazard' && ev.data) {
-        currentSummary.feedingHazardsToday += 1;
-        if (ev.severity === 'critical') currentSummary.activeHazardsUnresolved += 1;
-      }
-    }
-
-    return NextResponse.json({
-      success: true,
-      ingestedCount: incoming.length,
-      currentTotal: eventStore.length
-    }, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({
-      success: false,
-      error: error.message || 'Failed to ingest event'
-    }, { status: 500 });
+  const evs: Ev[] = [];
+  for (const r of raw as Record<string, unknown>[]) {
+    const ts = Number(r?.timestampMs) || Date.parse(String(r?.timestamp));
+    const data = r?.data;
+    if (
+      !isStr(r?.eventId, 64) ||
+      !isStr(r.cameraId) ||
+      !isStr(r.useCase) ||
+      !isStr(r.eventType) ||
+      !Number.isFinite(ts) ||
+      !data ||
+      typeof data !== "object" ||
+      Array.isArray(data)
+    )
+      continue;
+    evs.push({
+      id: r.eventId,
+      ts,
+      cameraId: r.cameraId,
+      cameraName: isStr(r.cameraName) ? r.cameraName : r.cameraId,
+      useCase: r.useCase,
+      eventType: r.eventType,
+      severity: (SEVERITIES.has(r.severity as string) ? r.severity : "info") as Severity,
+      nxCameraId: isStr(r.nxCameraId) ? r.nxCameraId : null,
+      data: data as Ev["data"],
+    });
   }
+  const inserted = await insertEvents(evs);
+  return Response.json({ inserted, skipped: raw.length - evs.length });
+}
+
+// CSV export: ?date=&useCase=&eventType=&cameraId=  (status heartbeats only when eventType=status)
+export async function GET(req: Request) {
+  const sp = new URL(req.url).searchParams;
+  const date = dateParam(sp.get("date") ?? undefined);
+  const [from, to] = dayRange(date);
+  const eventType = sp.get("eventType") || undefined;
+  const evs = (
+    await listEvents({
+      from,
+      to,
+      eventType,
+      useCase: sp.get("useCase") || undefined,
+      cameraId: sp.get("cameraId") || undefined,
+      excludeStatus: !eventType,
+    })
+  ).reverse();
+
+  const dataKeys = [...new Set(evs.flatMap((e) => Object.keys(e.data)))];
+  const q = (v: unknown) => `"${String(v ?? "").replaceAll('"', '""')}"`;
+  const lines = [
+    ["time_wib", "camera_id", "camera_name", "use_case", "event_type", "severity", ...dataKeys, "event_id"].map(q).join(","),
+    ...evs.map((e) =>
+      [fmtDateTime(e.ts), e.cameraId, e.cameraName, e.useCase, e.eventType, e.severity, ...dataKeys.map((k) => e.data[k]), e.id]
+        .map(q)
+        .join(","),
+    ),
+  ];
+  const name = ["events", date, sp.get("useCase"), eventType].filter(Boolean).join("-");
+  return new Response(lines.join("\r\n") + "\r\n", {
+    headers: {
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${name}.csv"`,
+    },
+  });
 }

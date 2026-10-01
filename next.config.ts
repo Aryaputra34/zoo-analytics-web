@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // keep the dev badge away from the sidebar's live-refresh button
+  devIndicators: { position: "bottom-right" },
 };
 
 export default nextConfig;
