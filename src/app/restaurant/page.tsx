@@ -1,7 +1,7 @@
-import { BellRing, Clock, TrendingUp, Users, Utensils } from "lucide-react";
-import { latestStatus, listEvents } from "@/lib/db";
+import { Armchair, BellRing, Clock, Hourglass, Repeat, TrendingUp, Users, Utensils } from "lucide-react";
+import { latestStatus, listEvents, type Ev } from "@/lib/db";
 import { STATUS_SEC, dateParam, dayRange, describe, fmtHm, fmtMin, fmtNum, fmtTime, isOnline, pct, todayWib } from "@/lib/util";
-import { Card, Empty, OnlineBadge, PageHeader, SeverityBadge, Table, Tile } from "@/components/ui";
+import { Card, Empty, Evidence, OnlineBadge, PageHeader, SeverityBadge, Table, Tile } from "@/components/ui";
 import { OccupancyChart } from "@/components/client";
 
 const BUCKET = 5 * 60_000;
@@ -11,10 +11,18 @@ export default async function Restaurant(props: PageProps<"/restaurant">) {
   const date = dateParam(sp.date);
   const isToday = date === todayWib();
   const [from, to] = dayRange(date);
-  const [evs, statuses] = await Promise.all([listEvents({ from, to, useCase: "restaurant_counter" }), latestStatus()]);
+  const [evs, tableEvs, statuses] = await Promise.all([
+    listEvents({ from, to, useCase: "restaurant_counter" }),
+    listEvents({ from, to, eventType: "table_state_change" }),
+    latestStatus(),
+  ]);
 
   const cams = new Map<string, string>();
   for (const e of [...statuses.filter((s) => s.useCase === "restaurant_counter"), ...evs]) cams.set(e.cameraId, e.cameraName);
+
+  // Table monitoring: the restaurant_table pipeline, or restaurant_counter with tables enabled
+  const tableCams = new Map<string, string>();
+  for (const e of [...statuses.filter((s) => Array.isArray(s.data.tables)), ...tableEvs]) tableCams.set(e.cameraId, e.cameraName);
 
   return (
     <>
@@ -25,7 +33,7 @@ export default async function Restaurant(props: PageProps<"/restaurant">) {
         date={date}
       />
 
-      {cams.size === 0 && (
+      {cams.size === 0 && tableCams.size === 0 && (
         <Card>
           <Empty>Belum ada data kamera pemantau restoran pada {date}.</Empty>
         </Card>
@@ -111,10 +119,10 @@ export default async function Restaurant(props: PageProps<"/restaurant">) {
               >
                 <Table
                   maxH="max-h-72"
-                  head={["Waktu", "Deskripsi Kejadian", "Tingkat Peringatan"]}
+                  head={["Waktu", "Deskripsi Kejadian", "Tingkat Peringatan", "Bukti"]}
                   rows={alerts
                     .slice(0, 100)
-                    .map((e) => [fmtTime(e.ts), describe(e), <SeverityBadge key="s" severity={e.severity} />])}
+                    .map((e) => [fmtTime(e.ts), describe(e), <SeverityBadge key="s" severity={e.severity} />, <Evidence key="v" e={e} />])}
                   empty="Tidak ada pelanggaran batas kapasitas pada hari ini. Kapasitas selalu aman."
                 />
               </Card>
@@ -122,7 +130,109 @@ export default async function Restaurant(props: PageProps<"/restaurant">) {
           </div>
         );
       })}
+
+      {[...tableCams].map(([id, name]) => (
+        <TableSection
+          key={`tables-${id}`}
+          name={name}
+          live={statuses.find((s) => s.cameraId === id)}
+          changes={tableEvs.filter((e) => e.cameraId === id)}
+          isToday={isToday}
+        />
+      ))}
     </>
+  );
+}
+
+type TableState = { id: string; name: string; status: string; personCount: number; dwellSec: number };
+
+function TableSection({ name, live, changes, isToday }: { name: string; live?: Ev; changes: Ev[]; isToday: boolean }) {
+  const online = isToday && isOnline(live) && Array.isArray(live?.data.tables);
+  const tables: TableState[] = online ? live!.data.tables : [];
+  const seated = changes.filter((e) => e.data.status === "OCCUPIED").length;
+  const stays = changes.filter((e) => e.data.status !== "OCCUPIED" && Number(e.data.dwellSec) > 0);
+  const avgStayMin = stays.length ? stays.reduce((n, e) => n + Number(e.data.dwellSec), 0) / stays.length / 60 : 0;
+
+  return (
+    <div className="mb-8">
+      <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-4 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-lime/20 text-forest">
+            <Armchair className="size-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-black text-forest">Status Meja · {name}</h2>
+            <div className="text-xs text-muted">Okupansi per meja dan lama tamu duduk</div>
+          </div>
+        </div>
+        <OnlineBadge online={isOnline(live)} />
+      </div>
+
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+        <Tile
+          label="Meja Terisi Saat Ini"
+          icon={<Armchair aria-hidden />}
+          value={online ? `${live!.data.occupiedTables}/${live!.data.totalTables}` : "—"}
+          sub={online ? `${live!.data.vacantTables} meja kosong` : "Kamera offline"}
+        />
+        <Tile
+          label="Tingkat Okupansi Meja"
+          icon={<TrendingUp aria-hidden />}
+          value={online ? `${Math.round(Number(live!.data.occupancyRatePct) || 0)}%` : "—"}
+          sub="Persentase meja terisi saat ini"
+        />
+        <Tile label="Tamu Duduk Hari Ini" icon={<Repeat aria-hidden />} value={fmtNum(seated)} sub="Jumlah meja mulai terisi" />
+        <Tile
+          label="Rata-rata Lama Duduk"
+          icon={<Hourglass aria-hidden />}
+          value={stays.length ? fmtMin(avgStayMin) : "—"}
+          sub={`Dari ${fmtNum(stays.length)} meja yang sudah ditinggalkan`}
+        />
+      </div>
+
+      <div className="grid gap-6">
+        {online && (
+          <Card title="Denah Status Meja (Live)" subtitle="Diperbarui setiap 30 detik dari kamera">
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+              {tables.map((t) => {
+                const occupied = t.status === "OCCUPIED";
+                return (
+                  <li
+                    key={t.id}
+                    className={`rounded-2xl border p-3 ${
+                      occupied
+                        ? "border-amber-200 bg-amber-50 dark:border-amber-800/40 dark:bg-amber-950/30"
+                        : "border-emerald-200 bg-emerald-50 dark:border-emerald-800/40 dark:bg-emerald-950/30"
+                    }`}
+                  >
+                    <div className="text-sm font-black text-forest">{t.name}</div>
+                    <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-ink-2">
+                      {occupied ? <Users aria-hidden className="size-3.5" /> : <Armchair aria-hidden className="size-3.5" />}
+                      {occupied ? `Terisi · ${t.personCount} orang` : "Kosong"}
+                    </div>
+                    {occupied && t.dwellSec > 0 && (
+                      <div className="mt-0.5 text-xs font-semibold text-muted">{fmtMin(t.dwellSec / 60)} duduk</div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </Card>
+        )}
+
+        <Card
+          title="Log Perubahan Status Meja"
+          subtitle={changes.length > 100 ? "Menampilkan 100 perubahan terbaru" : "Diurutkan dari yang terbaru"}
+        >
+          <Table
+            maxH="max-h-72"
+            head={["Waktu", "Deskripsi Kejadian", "Bukti"]}
+            rows={changes.slice(0, 100).map((e) => [fmtTime(e.ts), describe(e), <Evidence key="v" e={e} />])}
+            empty="Belum ada perubahan status meja pada hari ini."
+          />
+        </Card>
+      </div>
+    </div>
   );
 }
 

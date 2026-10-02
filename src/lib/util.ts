@@ -64,6 +64,7 @@ export const USE_CASES: Record<string, string> = {
   vehicle_gate: "Vehicle gate",
   cashier_presence: "Cashier",
   restaurant_counter: "Restaurant",
+  restaurant_table: "Restaurant tables",
   horse_riding: "Pony rides",
 };
 
@@ -72,9 +73,13 @@ export const EVENT_TYPES: Record<string, string> = {
   cashier_unattended: "Desk unattended",
   customer_waiting: "Customer waiting",
   capacity_alert: "Capacity alert",
+  table_state_change: "Table seated / vacated",
   horse_crossing: "Pony crossing",
   status: "Status (heartbeat)",
 };
+
+// Event data fields that point at evidence (shown by <Evidence>), not telemetry.
+const EVIDENCE_KEYS = new Set(["snapshot", "recordingPath"]);
 
 // One-line human description of an event.
 export function describe(e: Ev): string {
@@ -90,8 +95,13 @@ export function describe(e: Ev): string {
       return `${d.level === "full" ? "Full" : "Near limit"} · ${d.occupancy}/${d.maxCapacity} people`;
     case "horse_crossing":
       return d.direction === "DEPARTURE" ? "Pony departed" : "Pony returned";
+    case "table_state_change":
+      return d.status === "OCCUPIED"
+        ? `${d.tableName ?? d.tableId} · guests seated`
+        : `${d.tableName ?? d.tableId} · vacated${d.dwellSec ? ` after ${fmtMin(d.dwellSec / 60)}` : ""}`;
     default:
       return Object.entries(d)
+        .filter(([k]) => !EVIDENCE_KEYS.has(k))
         .map(([k, v]) => `${k}=${v}`)
         .join(" · ");
   }

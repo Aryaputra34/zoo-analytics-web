@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono, Nunito } from "next/font/google";
 import { TamanSafariHeader } from "@/components/TamanSafariHeader";
 import { TamanSafariFooter } from "@/components/TamanSafariFooter";
+import { authEnabled } from "@/lib/session";
 import "./globals.css";
 
 // Nunito: rounded friendly typography matching Gotham Rounded / Mikado used on tamansafari.com
@@ -42,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="flex min-h-full flex-col bg-bg font-sans text-ink selection:bg-lime selection:text-forest transition-colors duration-200">
-        <TamanSafariHeader />
+        <TamanSafariHeader showLogout={authEnabled()} />
 
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           {children}

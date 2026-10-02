@@ -1,7 +1,7 @@
 import { Filter } from "lucide-react";
 import { latestStatus, listEvents } from "@/lib/db";
 import { EVENT_TYPES, USE_CASES, dateParam, dayRange, describe, fmtNum, fmtTime, str, todayWib } from "@/lib/util";
-import { Card, CsvLink, PageHeader, SeverityBadge, Table } from "@/components/ui";
+import { Card, CsvLink, Evidence, PageHeader, SeverityBadge, Table } from "@/components/ui";
 
 const select = "h-9 rounded-full border border-line bg-surface px-3 text-xs font-bold text-forest shadow-sm focus:outline-none focus:ring-2 focus:ring-lime";
 
@@ -77,7 +77,7 @@ export default async function Events(props: PageProps<"/events">) {
         subtitle={evs.length > 500 ? "Menampilkan 500 kejadian terbaru · Unduh CSV untuk data lengkap" : "Diurutkan dari yang terbaru"}
       >
         <Table
-          head={["Waktu (WIB)", "Kamera Sensor", "Zona / Use Case", "Tipe Kejadian", "Tingkat", "Detail Telemetri"]}
+          head={["Waktu (WIB)", "Kamera Sensor", "Zona / Use Case", "Tipe Kejadian", "Tingkat", "Detail Telemetri", "Bukti"]}
           rows={evs.slice(0, 500).map((e) => [
             fmtTime(e.ts),
             <span key="c" className="font-extrabold text-forest">{e.cameraName}</span>,
@@ -87,6 +87,7 @@ export default async function Events(props: PageProps<"/events">) {
             <span key="d" className="text-ink-2 font-medium">
               {describe(e)}
             </span>,
+            <Evidence key="v" e={e} />,
           ])}
           empty={`Tidak ada kejadian yang cocok dengan filter pada ${date}.`}
         />

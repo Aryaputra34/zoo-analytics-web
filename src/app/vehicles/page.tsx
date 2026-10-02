@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { listEvents } from "@/lib/db";
 import { byHour, dateParam, dayRange, fmtNum, fmtTime, operatingHours, pct, str, todayWib } from "@/lib/util";
-import { Badge, Card, CsvLink, Mono, Note, PageHeader, ProgressBar, Table, Tile, Tiles } from "@/components/ui";
+import { Badge, Card, CsvLink, Evidence, Mono, Note, PageHeader, ProgressBar, Table, Tile, Tiles } from "@/components/ui";
 import { HourlyBars } from "@/components/client";
 
 function getVehicleMeta(type: string) {
@@ -362,8 +362,8 @@ export default async function Vehicles(props: PageProps<"/vehicles">) {
         }
       >
         <Table
-          head={["Waktu (WIB)", "Arah Lintasan", "Klasifikasi Kendaraan", "Kamera Sensor / Gerbang", "Status Sensor", "Ref Lintasan"]}
-          align={["left", "left", "left", "left", "left", "right"]}
+          head={["Waktu (WIB)", "Arah Lintasan", "Klasifikasi Kendaraan", "Kamera Sensor / Gerbang", "Status Sensor", "Ref Lintasan", "Bukti"]}
+          align={["left", "left", "left", "left", "left", "right", "left"]}
           rows={filteredEvs.slice(0, 200).map((e) => {
             const meta = getVehicleMeta(e.data.vehicleType);
             const Icon = meta.Icon;
@@ -410,6 +410,8 @@ export default async function Vehicles(props: PageProps<"/vehicles">) {
               <Mono key="ref">
                 #{e.data.trackerId ? `TRK-${e.data.trackerId}` : e.id.slice(-6).toUpperCase()}
               </Mono>,
+
+              <Evidence key="v" e={e} />,
             ];
           })}
           empty={

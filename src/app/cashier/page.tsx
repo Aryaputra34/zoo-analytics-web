@@ -13,7 +13,7 @@ import {
   operatingHours,
   todayWib,
 } from "@/lib/util";
-import { Badge, Card, Empty, Note, OnlineBadge, PageHeader, SeverityBadge, Table, Tile } from "@/components/ui";
+import { Badge, Card, Empty, Evidence, Note, OnlineBadge, PageHeader, SeverityBadge, Table, Tile } from "@/components/ui";
 import { HourlyBars } from "@/components/client";
 
 const absent = (e: Ev) => e.eventType === "status" && e.data.clerkPresent === false;
@@ -121,10 +121,10 @@ export default async function Cashier(props: PageProps<"/cashier">) {
           >
             <Table
               maxH="max-h-96"
-              head={["Waktu", "Loket", "Deteksi / Kejadian", "Tingkat"]}
+              head={["Waktu", "Loket", "Deteksi / Kejadian", "Tingkat", "Bukti"]}
               rows={alerts
                 .slice(0, 200)
-                .map((e) => [fmtTime(e.ts), e.cameraName, describe(e), <SeverityBadge key="s" severity={e.severity} />])}
+                .map((e) => [fmtTime(e.ts), e.cameraName, describe(e), <SeverityBadge key="s" severity={e.severity} />, <Evidence key="v" e={e} />])}
               empty={`Tidak ada peringatan loket pada ${date}. Pelayanan prima.`}
             />
             <Note>Peringatan dikirim berulang setiap 30 detik selama kondisi loket kosong atau pengunjung menunggu tetap berlangsung.</Note>

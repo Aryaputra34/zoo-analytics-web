@@ -9,9 +9,9 @@ import {
   Sparkles,
   TriangleAlert,
 } from "lucide-react";
-import type { Severity } from "@/lib/db";
-import { todayWib } from "@/lib/util";
-import { DatePicker } from "./client";
+import type { Ev, Severity } from "@/lib/db";
+import { fmtDateTime, todayWib } from "@/lib/util";
+import { DatePicker, EvidenceButton } from "./client";
 
 export function PageHeader({
   title,
@@ -373,3 +373,18 @@ export function CsvLink({ href }: { href: string }) {
 export const Note = ({ children }: { children: ReactNode }) => (
   <p className="mt-4 text-xs font-semibold text-muted">{children}</p>
 );
+
+// Snapshot (zoo-monitor AI engine) + recorded clip (MediaMTX) of an event, when the event has them and the
+// dashboard is configured to reach them (AI_ENGINE_URL / MEDIAMTX_PLAYBACK_URL).
+export function Evidence({ e }: { e: Ev }) {
+  const { snapshot, recordingPath } = e.data;
+  const snapshotUrl =
+    typeof snapshot === "string" && process.env.AI_ENGINE_URL
+      ? `/api/ai/snapshots/${snapshot.split("/").map(encodeURIComponent).join("/")}`
+      : undefined;
+  const clipUrl =
+    typeof recordingPath === "string" && process.env.MEDIAMTX_PLAYBACK_URL
+      ? `/api/clip?${new URLSearchParams({ path: recordingPath, ts: String(e.ts) })}`
+      : undefined;
+  return <EvidenceButton snapshot={snapshotUrl} clip={clipUrl} title={`${e.cameraName} · ${fmtDateTime(e.ts)} WIB`} />;
+}

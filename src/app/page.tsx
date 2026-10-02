@@ -15,7 +15,7 @@ import {
   isOnline,
   todayWib,
 } from "@/lib/util";
-import { Card, Empty, OnlineBadge, PageHeader, SafariHeroBanner, SeverityBadge, Table, Tile, Tiles } from "@/components/ui";
+import { Card, Empty, Evidence, OnlineBadge, PageHeader, SafariHeroBanner, SeverityBadge, Table, Tile, Tiles } from "@/components/ui";
 
 function liveLine(s: Ev) {
   const d = s.data;
@@ -233,7 +233,7 @@ export default async function Overview(props: PageProps<"/">) {
           }
         >
           <Table
-            head={["Waktu", "Kamera", "Deteksi / Kejadian", "Tingkat"]}
+            head={["Waktu", "Kamera", "Deteksi / Kejadian", "Tingkat", "Bukti"]}
             rows={alerts
               .slice(0, 10)
               .map((e) => [
@@ -241,6 +241,7 @@ export default async function Overview(props: PageProps<"/">) {
                 e.cameraName,
                 describe(e),
                 <SeverityBadge key="s" severity={e.severity} />,
+                <Evidence key="v" e={e} />,
               ])}
             empty={`Tidak ada peringatan operasional pada ${date}. Seluruh sistem normal.`}
           />

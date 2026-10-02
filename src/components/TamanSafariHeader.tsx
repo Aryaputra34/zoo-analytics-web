@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   ChevronDown,
+  LogOut,
   MapPin,
   Menu,
   Moon,
@@ -18,7 +19,7 @@ import {
 import { DESTINATIONS, NAV } from "./nav";
 import { AutoRefresh } from "./client";
 
-export function TamanSafariHeader() {
+export function TamanSafariHeader({ showLogout = false }: { showLogout?: boolean }) {
   const path = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedDest, setSelectedDest] = useState(DESTINATIONS[0].id);
@@ -120,6 +121,18 @@ export function TamanSafariHeader() {
                 ID
               </button>
             </div>
+
+            {/* plain <a>: a <Link> could prefetch /logout and sign the user out */}
+            {showLogout && path !== "/login" && (
+              <a
+                href="/logout"
+                className="flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[11px] font-bold text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+                title="Keluar"
+              >
+                <LogOut aria-hidden className="size-3" />
+                <span className="hidden sm:inline">Keluar</span>
+              </a>
+            )}
           </div>
         </div>
       </div>

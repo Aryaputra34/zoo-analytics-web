@@ -1,7 +1,8 @@
-import { Car, LayoutDashboard, ScrollText, Store, Ticket, Utensils } from "lucide-react";
+import { Car, Cctv, LayoutDashboard, ScrollText, Store, Ticket, Utensils } from "lucide-react";
 
 export const NAV = [
   { href: "/", label: "Overview", sub: "Command Center", Icon: LayoutDashboard },
+  { href: "/live", label: "Live", sub: "Kamera AI Langsung", Icon: Cctv },
   { href: "/vehicles", label: "Vehicle Gate", sub: "Hitung Kendaraan", Icon: Car },
   { href: "/cashier", label: "Cashier Desks", sub: "Loket & Retail Plaza", Icon: Store },
   { href: "/restaurant", label: "Restaurant", sub: "Safari Rainforest Dining", Icon: Utensils },

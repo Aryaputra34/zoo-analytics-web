@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
+import { CctvOff, ChevronLeft, ChevronRight, Film, Pause, Play, X } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -253,6 +253,225 @@ export function OccupancyChart({
         </AreaChart>
       </ResponsiveContainer>
     </div>
+  );
+}
+
+const dialogCls =
+  "m-auto w-[min(960px,calc(100vw-2rem))] rounded-[24px] border border-line bg-surface p-0 text-ink shadow-2xl backdrop:bg-black/70";
+const closeBtn =
+  "grid size-9 shrink-0 cursor-pointer place-items-center rounded-full border border-line bg-surface text-forest hover:bg-lime/20";
+
+// Thumbnail of an event's snapshot; opens the full snapshot and the recorded clip around the event.
+// The clip is only requested while the dialog is open.
+export function EvidenceButton({ snapshot, clip, title }: { snapshot?: string; clip?: string; title: string }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [open, setOpen] = useState(false);
+  const [clipFailed, setClipFailed] = useState(false);
+  if (!snapshot && !clip) return <span className="text-muted">—</span>;
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          setOpen(true);
+          dialog.current?.showModal();
+        }}
+        aria-label={`Lihat bukti kejadian ${title}`}
+        className="group relative block h-10 w-16 cursor-pointer overflow-hidden rounded-lg border border-line bg-surface-2 hover:ring-2 hover:ring-lime"
+      >
+        {snapshot ? (
+          // eslint-disable-next-line @next/next/no-img-element -- proxied JPEG from the AI engine, nothing to optimize
+          <img src={snapshot} alt="" loading="lazy" className="size-full object-cover" />
+        ) : (
+          <Film aria-hidden className="m-auto size-4 text-forest" />
+        )}
+        {clip && (
+          <span className="absolute right-0.5 bottom-0.5 grid size-4 place-items-center rounded-full bg-forest/90 text-lime">
+            <Play aria-hidden className="size-2.5" />
+          </span>
+        )}
+      </button>
+      <dialog
+        ref={dialog}
+        onClose={() => {
+          setOpen(false);
+          setClipFailed(false);
+        }}
+        onClick={(e) => e.target === dialog.current && dialog.current.close()}
+        className={dialogCls}
+      >
+        {open && (
+          <div className="grid gap-4 p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-sm font-black text-forest">{title}</h2>
+              <button type="button" onClick={() => dialog.current?.close()} aria-label="Tutup" className={closeBtn}>
+                <X aria-hidden className="size-4" />
+              </button>
+            </div>
+            <div className={`grid gap-4 ${snapshot && clip ? "md:grid-cols-2" : ""}`}>
+              {snapshot && (
+                <figure className="grid gap-1.5">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- proxied JPEG from the AI engine */}
+                  <img src={snapshot} alt={`Snapshot ${title}`} className="w-full rounded-xl bg-black" />
+                  <figcaption className="text-xs font-semibold text-muted">Snapshot saat kejadian (anotasi AI)</figcaption>
+                </figure>
+              )}
+              {clip && (
+                <figure className="grid gap-1.5">
+                  {clipFailed ? (
+                    <div className="grid aspect-video place-items-center rounded-xl bg-surface-2 p-4 text-center text-xs font-bold text-ink-2">
+                      Rekaman untuk kejadian ini belum atau tidak lagi tersedia.
+                    </div>
+                  ) : (
+                    <video
+                      src={clip}
+                      controls
+                      autoPlay
+                      muted
+                      playsInline
+                      onError={() => setClipFailed(true)}
+                      className="w-full rounded-xl bg-black"
+                    />
+                  )}
+                  <figcaption className="text-xs font-semibold text-muted">
+                    Klip rekaman 15 detik sebelum s/d 15 detik sesudah kejadian
+                  </figcaption>
+                </figure>
+              )}
+            </div>
+          </div>
+        )}
+      </dialog>
+    </>
+  );
+}
+
+type LiveCam = { id: string; name: string; useCase: string; fps: number; online: boolean };
+
+// Camera grid from the AI engine: stills refreshed every 2 s (one request each), and the annotated MJPEG
+// stream only for the camera that is opened. A grid of streams would use up the browser's ~6 connections.
+export function LiveGrid({ labels }: { labels: Record<string, string> }) {
+  const [cams, setCams] = useState<LiveCam[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [tick, setTick] = useState(0);
+  const [focus, setFocus] = useState<LiveCam | null>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    let alive = true;
+    let loaded = false;
+    const load = async () => {
+      if (loaded && document.hidden) return; // a background tab still gets its first load
+      try {
+        const r = await fetch("/api/ai/health", { cache: "no-store" });
+        if (!r.ok) throw new Error(String(r.status));
+        const j: { cameras: LiveCam[] } = await r.json();
+        if (!alive) return;
+        loaded = true;
+        setCams(j.cameras);
+        setFailed(false);
+        setTick((t) => t + 1);
+      } catch {
+        if (alive) setFailed(true);
+      }
+    };
+    load();
+    const id = setInterval(load, 2000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, []);
+
+  if (failed && !cams)
+    return (
+      <div className="rounded-[24px] border border-line bg-surface p-10 text-center text-sm font-bold text-ink-2 shadow-sm">
+        Mesin AI tidak dapat dihubungi. Pastikan layanan zoo-monitor berjalan dan AI_ENGINE_URL benar.
+      </div>
+    );
+  if (!cams) return <div className="py-10 text-center text-sm font-bold text-muted">Memuat kamera…</div>;
+
+  return (
+    <>
+      {failed && (
+        <p role="status" className="mb-3 text-xs font-bold text-amber-700 dark:text-amber-400">
+          Koneksi ke mesin AI terputus. Gambar di bawah mungkin tidak terbaru.
+        </p>
+      )}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {cams.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            disabled={!c.online}
+            onClick={() => {
+              setFocus(c);
+              dialog.current?.showModal();
+            }}
+            className="group overflow-hidden rounded-[24px] border border-line bg-surface text-left shadow-sm transition-all enabled:cursor-pointer enabled:hover:-translate-y-0.5 enabled:hover:border-lime/60 enabled:hover:shadow-lg"
+          >
+            <div className="grid aspect-video place-items-center bg-black">
+              {c.online ? (
+                // eslint-disable-next-line @next/next/no-img-element -- live JPEG from the AI engine
+                <img
+                  src={`/api/ai/frame/${encodeURIComponent(c.id)}?t=${tick}`}
+                  alt={`Pratinjau ${c.name}`}
+                  className="size-full object-contain"
+                />
+              ) : (
+                <CctvOff aria-hidden className="size-8 text-zinc-500" />
+              )}
+            </div>
+            <div className="flex items-center justify-between gap-2 px-4 py-3">
+              <div className="min-w-0">
+                <div className="truncate text-sm font-black text-forest">{c.name}</div>
+                <div className="text-xs font-semibold text-muted">
+                  {labels[c.useCase] ?? c.useCase}
+                  {c.online && ` · ${c.fps} FPS`}
+                </div>
+              </div>
+              <span
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-extrabold ${
+                  c.online
+                    ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                    : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800/40 dark:text-zinc-400"
+                }`}
+              >
+                <span className={`size-2 rounded-full ${c.online ? "bg-emerald-500 camera-pulse" : "bg-zinc-400"}`} aria-hidden />
+                {c.online ? "Online" : "Offline"}
+              </span>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <dialog
+        ref={dialog}
+        onClose={() => setFocus(null)}
+        onClick={(e) => e.target === dialog.current && dialog.current.close()}
+        className={dialogCls}
+      >
+        {focus && (
+          <div className="grid gap-3 p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-sm font-black text-forest">
+                {focus.name} <span className="font-semibold text-muted">· langsung, anotasi AI</span>
+              </h2>
+              <button type="button" onClick={() => dialog.current?.close()} aria-label="Tutup" className={closeBtn}>
+                <X aria-hidden className="size-4" />
+              </button>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element -- MJPEG stream; unmounting the img ends it */}
+            <img
+              src={`/api/ai/stream/${encodeURIComponent(focus.id)}`}
+              alt={`Video langsung ${focus.name}`}
+              className="w-full rounded-xl bg-black"
+            />
+          </div>
+        )}
+      </dialog>
+    </>
   );
 }
 

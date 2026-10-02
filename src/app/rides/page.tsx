@@ -2,7 +2,7 @@ import { Clock, Hourglass, Ticket, Undo2 } from "lucide-react";
 import Link from "next/link";
 import { listEvents } from "@/lib/db";
 import { byHour, dateParam, dayOf, dayRange, fmtNum, fmtTime, operatingHours, shiftDate, todayWib } from "@/lib/util";
-import { Card, CsvLink, Mono, Note, PageHeader, Table, Tile, Tiles } from "@/components/ui";
+import { Card, CsvLink, Evidence, Mono, Note, PageHeader, Table, Tile, Tiles } from "@/components/ui";
 import { HourlyBars } from "@/components/client";
 
 export default async function Rides(props: PageProps<"/rides">) {
@@ -102,7 +102,7 @@ export default async function Rides(props: PageProps<"/rides">) {
         subtitle={evs.length > 200 ? "Menampilkan 200 lintasan terbaru" : "Diurutkan dari yang terbaru"}
       >
         <Table
-          head={["Waktu", "Arah Lintasan", "Kamera CCTV", "ID Objek Tracker"]}
+          head={["Waktu", "Arah Lintasan", "Kamera CCTV", "ID Objek Tracker", "Bukti"]}
           rows={evs
             .slice(0, 200)
             .map((e) => [
@@ -118,11 +118,12 @@ export default async function Rides(props: PageProps<"/rides">) {
               ),
               e.cameraName,
               <Mono key="t">{e.data.trackerId ?? "—"}</Mono>,
+              <Evidence key="v" e={e} />,
             ])}
           empty={`Tidak ada lintasan wahana kuda pada ${date}.`}
         />
         <Note>
-          Penghitungan berasal dari garis deteksi tripwire AI kamera. ID tracker membantu pencarian rekaman klip video di VMS (Nx Witness).
+          Penghitungan berasal dari garis deteksi tripwire AI kamera. Kolom Bukti menampilkan snapshot dan klip rekaman setiap lintasan.
         </Note>
       </Card>
     </>
