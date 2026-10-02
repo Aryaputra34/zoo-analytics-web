@@ -127,7 +127,7 @@ export default async function Overview(props: PageProps<"/">) {
           </div>
           <div className="mt-3">
             <div className="text-xs font-bold text-muted">Area Gerbang</div>
-            <div className="text-sm font-black text-forest">Safari Journey ANPR</div>
+            <div className="text-sm font-black text-forest">Safari Journey · Hitung Kendaraan</div>
           </div>
         </Link>
 

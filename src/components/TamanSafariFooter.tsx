@@ -173,7 +173,7 @@ export function TamanSafariFooter() {
             <ul className="mt-4 space-y-2 text-xs text-white/80">
               <li>
                 <Link href="/vehicles" className="hover:text-lime transition-colors flex items-center gap-1.5">
-                  <span className="text-lime">›</span> Safari Journey Gate 1 & 2 (ANPR)
+                  <span className="text-lime">›</span> Safari Journey Gate 1 & 2 (Penghitungan Kendaraan)
                 </Link>
               </li>
               <li>

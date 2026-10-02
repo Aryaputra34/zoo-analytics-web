@@ -143,33 +143,60 @@ export function SafariHeroBanner({
   );
 }
 
+export function ProgressBar({
+  value,
+  max = 100,
+  color = "bg-lime",
+  className = "",
+}: {
+  value: number;
+  max?: number;
+  color?: string;
+  className?: string;
+}) {
+  const percentage = Math.min(100, Math.max(0, Math.round((value / max) * 100)));
+  return (
+    <div className={`h-2.5 w-full overflow-hidden rounded-full bg-surface-2 p-0.5 ${className}`}>
+      <div
+        className={`h-full rounded-full transition-all duration-500 ${color}`}
+        style={{ width: `${percentage}%` }}
+      />
+    </div>
+  );
+}
+
 export function Tile({
   label,
   value,
   sub,
   icon,
+  badge,
 }: {
   label: string;
   value: ReactNode;
   sub?: ReactNode;
   icon?: ReactNode;
+  badge?: ReactNode;
 }) {
   return (
-    <div className="group rounded-[22px] border border-line bg-surface p-4 sm:p-5 shadow-sm transition-all hover:border-lime/60 hover:shadow-md">
+    <div className="group relative overflow-hidden rounded-[24px] border border-line bg-surface p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-lime/60 hover:shadow-lg">
       <div className="flex items-start justify-between gap-3">
-        <div className="text-xs font-extrabold uppercase tracking-wider text-ink-2">
-          {label}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="text-xs font-extrabold uppercase tracking-wider text-ink-2">
+            {label}
+          </div>
+          {badge}
         </div>
         {icon && (
-          <div className="grid size-10 shrink-0 place-items-center rounded-2xl bg-lime text-forest shadow-sm transition-transform group-hover:scale-105 [&_svg]:size-5">
+          <div className="grid size-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-lime/30 to-lime/10 text-forest shadow-sm transition-transform group-hover:scale-105 [&_svg]:size-5 ring-1 ring-lime/20">
             {icon}
           </div>
         )}
       </div>
-      <div className="mt-2 text-2xl font-black tracking-tight text-forest sm:text-3xl">
+      <div className="mt-3 text-3xl font-black tracking-tight text-forest">
         {value}
       </div>
-      {sub && <div className="mt-1 text-xs font-semibold text-muted">{sub}</div>}
+      {sub && <div className="mt-1.5 text-xs font-semibold text-muted">{sub}</div>}
     </div>
   );
 }

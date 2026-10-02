@@ -211,20 +211,18 @@ export function TamanSafariHeader() {
           )}
         </div>
 
-        {/* Right: Quick Search & Emergency Hotline */}
+        {/* Right: Operational Telemetry & AI Status */}
         <div className="hidden lg:flex items-center gap-3">
-          <form action="/vehicles" method="get" className="relative">
-            <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-white/50" />
-            <input
-              type="text"
-              name="q"
-              placeholder={lang === "en" ? "Search vehicle plate..." : "Cari plat nomor..."}
-              className="h-9 w-52 rounded-full border border-white/20 bg-white/10 pl-8 pr-3 text-xs font-semibold text-white placeholder-white/40 backdrop-blur-sm transition-all focus:w-64 focus:border-lime focus:bg-white/15 focus:outline-none"
-            />
-          </form>
+          <Link
+            href="/vehicles"
+            className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs font-bold text-white/90 backdrop-blur-sm transition-all hover:border-lime hover:bg-white/15 hover:text-white"
+          >
+            <Radio className="size-3.5 text-lime animate-pulse" />
+            <span>{lang === "en" ? "Gate Traffic Flow" : "Arus Lalu Lintas Gerbang"}</span>
+          </Link>
 
-          <div className="flex items-center gap-2 rounded-full border border-lime/30 bg-lime/10 px-3 py-1.5 text-[11px] font-bold text-lime">
-            <span className="size-2 rounded-full bg-lime animate-ping" />
+          <div className="flex items-center gap-2 rounded-full border border-lime/30 bg-lime/10 px-3.5 py-1.5 text-[11px] font-bold text-lime shadow-inner">
+            <span className="size-2 rounded-full bg-lime camera-pulse" />
             <span>4/4 AI Nodes Live</span>
           </div>
         </div>

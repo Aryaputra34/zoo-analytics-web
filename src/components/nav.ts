@@ -2,7 +2,7 @@ import { Car, LayoutDashboard, ScrollText, Store, Ticket, Utensils } from "lucid
 
 export const NAV = [
   { href: "/", label: "Overview", sub: "Command Center", Icon: LayoutDashboard },
-  { href: "/vehicles", label: "Vehicle Gate", sub: "Safari Journey ANPR", Icon: Car },
+  { href: "/vehicles", label: "Vehicle Gate", sub: "Hitung Kendaraan", Icon: Car },
   { href: "/cashier", label: "Cashier Desks", sub: "Loket & Retail Plaza", Icon: Store },
   { href: "/restaurant", label: "Restaurant", sub: "Safari Rainforest Dining", Icon: Utensils },
   { href: "/rides", label: "Pony Rides", sub: "Animal Encounters Arena", Icon: Ticket },

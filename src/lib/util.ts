@@ -81,7 +81,7 @@ export function describe(e: Ev): string {
   const d = e.data;
   switch (e.eventType) {
     case "vehicle_crossing":
-      return `${d.direction} · ${d.vehicleType} · ${d.plate}`;
+      return `${d.direction === "ENTRY" ? "Masuk (Entry)" : "Keluar (Exit)"} · ${d.vehicleType || "Kendaraan"}${d.trackerId ? ` · Ref #${d.trackerId}` : ""}`;
     case "cashier_unattended":
       return `Desk unattended for ${d.absentSec}s`;
     case "customer_waiting":
