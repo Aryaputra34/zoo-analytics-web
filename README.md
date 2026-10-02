@@ -55,7 +55,13 @@ For a full command matrix across all 5 pipelines (gate, cashier, restaurant, tab
 
 ### Configuration (`.env.local`)
 
+Copy `.env.example` to create your local environment file:
+
+```bash
+cp .env.example .env.local
 ```
+
+```env
 # Login: one shared password for all users. Leave it out = no login (local development only).
 DASHBOARD_PASSWORD=some-long-password
 # POST /api/events then requires "Authorization: Bearer <key>" (= analytics.api_key in zoo-monitor)
