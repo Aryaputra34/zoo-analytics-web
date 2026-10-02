@@ -11,6 +11,8 @@ export function proxy(req: NextRequest) {
   if (
     !authEnabled() ||
     pathname === "/login" ||
+    pathname.startsWith("/api-docs") ||
+    pathname === "/api/openapi.yaml" ||
     (!isApi && PUBLIC_ASSET.test(pathname)) ||
     (pathname === "/api/events" && req.method === "POST") ||
     validSession(req.cookies.get(SESSION_COOKIE)?.value)

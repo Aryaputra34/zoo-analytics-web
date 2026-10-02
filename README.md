@@ -51,6 +51,8 @@ analytics:
 Then `python main.py` (all enabled cameras), or test a single video with
 `python test_video.py --video <file.mp4> --pipeline horse --analytics`.
 
+For a full command matrix across all 5 pipelines (gate, cashier, restaurant, tables, horse), see [08_TESTING_GUIDE.md](../zoo-monitor/docs/08_TESTING_GUIDE.md).
+
 ### Configuration (`.env.local`)
 
 ```
@@ -118,6 +120,12 @@ Duplicate `eventId`s are ignored, so senders can safely retry. Invalid events ar
 
 `GET /api/events?date=&useCase=&eventType=&cameraId=` downloads the matching events as CSV.
 
+## Documentation
+
+- **[Interactive Swagger UI (`/api-docs`)](http://localhost:3000/api-docs)**: Interactive in-browser API testing with "Try it out", schema viewer, and Bearer auth.
+- **[API Reference (`docs/API.md`)](docs/API.md)**: Full endpoint reference, payload schemas, architecture diagrams, and Python/cURL code examples.
+- **[OpenAPI Specification (`docs/openapi.yaml`)](docs/openapi.yaml)**: OpenAPI 3.1.0 standard specification (raw at [`/api/openapi.yaml`](http://localhost:3000/api/openapi.yaml)) for Postman, Insomnia, and SDK generation.
+
 ## Code map
 
 - `src/lib/db.ts`: **all** SQL. To move to Postgres, rewrite only this file (`pg` Pool, `?` → `$1…`, drop the PRAGMAs).
@@ -128,3 +136,4 @@ Duplicate `eventId`s are ignored, so senders can safely retry. Invalid events ar
 - `src/app/*/page.tsx`: pages (server components reading `db.ts` directly).
 - `src/components/`: `ui.tsx` (tiles, tables, badges) and `client.tsx` (charts, nav, auto-refresh).
 - `scripts/seed.mjs`: demo data.
+
