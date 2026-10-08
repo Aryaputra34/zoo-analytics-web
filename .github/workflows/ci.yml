@@ -11,5 +11,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      # PageProps / RouteContext are global types Next.js generates into .next/types
+      - run: npx next typegen
       - run: npx tsc --noEmit
       - run: npm run build
