@@ -64,78 +64,75 @@ export function SafariHeroBanner({
   todayVehicles: number;
 }) {
   return (
-    <section className="relative mb-8 overflow-hidden rounded-[26px] border border-lime/30 bg-forest-dark text-white shadow-xl">
+    <section className="relative mb-6 overflow-hidden rounded-[24px] border border-lime/30 bg-forest-dark text-white shadow-xl">
       {/* Background Image with Gradient Overlay */}
       <div className="absolute inset-0 z-0">
         <Image
           src="/taman_safari_hero.jpg"
           alt="Taman Safari Indonesia Panorama"
           fill
-          className="object-cover object-center opacity-40 brightness-90 transition-transform duration-1000 hover:scale-105"
+          className="object-cover object-center opacity-30 brightness-90 transition-transform duration-1000 hover:scale-102"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-forest-dark via-forest-dark/85 to-forest-dark/50" />
-        <div className="absolute inset-0 bg-gradient-to-t from-forest-dark via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-forest-dark via-forest-dark/90 to-forest-dark/60" />
       </div>
 
       {/* Zebra decorative corner accent */}
-      <div className="zebra absolute top-0 right-0 h-2.5 w-48 rounded-bl-full shadow-md" />
+      <div className="zebra absolute top-0 right-0 h-2 w-40 rounded-bl-full shadow-md" />
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col justify-between gap-6 p-6 sm:p-8 lg:p-10">
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-lime/40 bg-lime/20 px-3.5 py-1 text-xs font-black tracking-wider text-lime uppercase backdrop-blur-md">
+      {/* Content HUD */}
+      <div className="relative z-10 flex flex-col justify-between gap-4 p-4 sm:p-5 lg:flex-row lg:items-center lg:gap-6">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-lime/40 bg-lime/20 px-3 py-0.5 text-[10px] font-black tracking-wider text-lime uppercase backdrop-blur-md">
             <span className="size-2 rounded-full bg-lime animate-ping" />
             Live AI Telemetry · Cisarua Bogor Hub
           </div>
-          <h2 className="mt-3 text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
-            Countless Excitements. <br />
-            <span className="text-lime">Seamless AI Park Operations.</span>
+          <h2 className="mt-1.5 text-xl font-black tracking-tight text-white sm:text-2xl lg:text-3xl">
+            Pusat Kendali Operasional <span className="text-lime">AI Vision</span>
           </h2>
-          <p className="mt-2 text-sm leading-relaxed text-white/80 sm:text-base">
-            Real-time computer vision stream across Safari Journey vehicle gates, cashier desks,
-            rainforest dining halls, and animal encounter arenas.
+          <p className="mt-0.5 text-xs text-white/80 max-w-2xl leading-relaxed">
+            Pemantauan real-time koridor Safari Journey, loket tiket, dining hall, dan encounter arena melalui kamera CCTV sensor berkecepatan tinggi.
           </p>
         </div>
 
-        {/* Quick Highlights Strip */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:gap-4">
-          <div className="rounded-2xl border border-white/15 bg-white/10 p-3.5 backdrop-blur-md">
-            <div className="text-[11px] font-extrabold uppercase tracking-wider text-lime">
-              Park Status
+        {/* Compact Telemetry Chips */}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:shrink-0">
+          <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-md">
+            <div className="text-[10px] font-extrabold uppercase tracking-wider text-lime">
+              Status Taman
             </div>
-            <div className="mt-1 text-xl font-black text-white sm:text-2xl">OPEN</div>
-            <div className="text-[11px] text-white/70">08:30 – 17:00 WIB</div>
+            <div className="mt-0.5 text-base font-black text-white">BUKA</div>
+            <div className="text-[10px] text-white/70">08:30 – 17:00 WIB</div>
           </div>
 
-          <div className="rounded-2xl border border-white/15 bg-white/10 p-3.5 backdrop-blur-md">
-            <div className="text-[11px] font-extrabold uppercase tracking-wider text-lime">
-              Vision Network
+          <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-md">
+            <div className="text-[10px] font-extrabold uppercase tracking-wider text-lime">
+              Sensor CCTV
             </div>
-            <div className="mt-1 text-xl font-black text-white sm:text-2xl">
+            <div className="mt-0.5 text-base font-black text-white">
               {onlineCams}/4 Online
             </div>
-            <div className="text-[11px] text-white/70">100% Operational Health</div>
+            <div className="text-[10px] text-white/70">100% Health</div>
           </div>
 
-          <div className="rounded-2xl border border-white/15 bg-white/10 p-3.5 backdrop-blur-md">
-            <div className="text-[11px] font-extrabold uppercase tracking-wider text-lime">
-              Vehicles Inside
+          <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-md">
+            <div className="text-[10px] font-extrabold uppercase tracking-wider text-lime">
+              Populasi Safari
             </div>
-            <div className="mt-1 text-xl font-black text-white sm:text-2xl">
+            <div className="mt-0.5 text-base font-black text-white">
               {todayVehicles.toLocaleString("id-ID")}
             </div>
-            <div className="text-[11px] text-white/70">Safari Journey corridor</div>
+            <div className="text-[10px] text-white/70">Unit di koridor</div>
           </div>
 
-          <div className="rounded-2xl border border-white/15 bg-white/10 p-3.5 backdrop-blur-md">
-            <div className="text-[11px] font-extrabold uppercase tracking-wider text-lime">
-              Today Events Log
+          <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-md">
+            <div className="text-[10px] font-extrabold uppercase tracking-wider text-lime">
+              Log Hari Ini
             </div>
-            <div className="mt-1 text-xl font-black text-white sm:text-2xl">
+            <div className="mt-0.5 text-base font-black text-white">
               {totalEvents.toLocaleString("id-ID")}
             </div>
-            <div className="text-[11px] text-white/70">Recorded on {date}</div>
+            <div className="text-[10px] text-white/70">{date}</div>
           </div>
         </div>
       </div>

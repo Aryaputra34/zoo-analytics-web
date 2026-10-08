@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Nunito } from "next/font/google";
-import { TamanSafariHeader } from "@/components/TamanSafariHeader";
-import { TamanSafariFooter } from "@/components/TamanSafariFooter";
+import { CommandCenterShell } from "@/components/CommandCenterShell";
 import { authEnabled } from "@/lib/session";
 import "./globals.css";
 
@@ -11,14 +10,13 @@ const nunito = Nunito({
   subsets: ["latin"],
 });
 
-
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Taman Safari Indonesia · AI Operations & Analytics",
+  title: "Taman Safari Indonesia · AI Command Center",
   description: "Official real-time AI computer vision operations platform for Taman Safari Indonesia parks & resorts",
   icons: {
     icon: "/logo_safari.svg",
@@ -42,13 +40,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className="flex min-h-full flex-col bg-bg font-sans text-ink selection:bg-lime selection:text-forest transition-colors duration-200">
-        <TamanSafariHeader showLogout={authEnabled()} />
-
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <body className="min-h-full bg-bg font-sans text-ink selection:bg-lime selection:text-forest transition-colors duration-200">
+        <CommandCenterShell showLogout={authEnabled()}>
           {children}
-        </main>
-        <TamanSafariFooter />
+        </CommandCenterShell>
       </body>
     </html>
   );
