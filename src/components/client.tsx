@@ -387,7 +387,7 @@ export function LiveGrid({ labels }: { labels: Record<string, string> }) {
   if (failed && !cams)
     return (
       <div className="rounded-[24px] border border-line bg-surface p-10 text-center text-sm font-bold text-ink-2 shadow-sm">
-        Mesin AI tidak dapat dihubungi. Pastikan layanan zoo-monitor berjalan dan AI_ENGINE_URL benar.
+        Mesin AI tidak dapat dihubungi. Pastikan layanan zoo-vision berjalan dan AI_ENGINE_URL benar.
       </div>
     );
   if (!cams) return <div className="py-10 text-center text-sm font-bold text-muted">Memuat kamera…</div>;

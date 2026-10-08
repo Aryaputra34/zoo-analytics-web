@@ -1,4 +1,4 @@
-// Event clip from MediaMTX's playback server (zoo-monitor configs/mediamtx.yml):
+// Event clip from MediaMTX's playback server (zoo-vision deploy/mediamtx.yml):
 // ?path=<recordingPath>&ts=<event ms>  ->  MP4 from 15 s before to 15 s after the event.
 const BEFORE_SEC = 15;
 const DURATION_SEC = 30;

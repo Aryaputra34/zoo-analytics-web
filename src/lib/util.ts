@@ -4,7 +4,7 @@ import type { Ev } from "./db";
 const WIB = 7 * 3_600_000;
 const DAY = 86_400_000;
 
-// Must match STATUS_INTERVAL_SEC in zoo-monitor core/base_pipeline.py.
+// Must match STATUS_INTERVAL_SEC in zoo-vision services/engine/core/base_pipeline.py.
 export const STATUS_SEC = 30;
 
 const wibIso = (ts: number) => new Date(ts + WIB).toISOString();

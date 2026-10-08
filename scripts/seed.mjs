@@ -1,4 +1,4 @@
-// Demo data: POSTs realistic fake zoo-monitor events through the real ingest API.
+// Demo data: POSTs realistic fake zoo-vision events through the real ingest API.
 //   npm run seed                 -> today + previous 6 days (08:00–17:30 WIB, today capped at now)
 //   npm run seed -- --days 1     -> today only
 //   npm run seed -- --live       -> after seeding, keep sending heartbeats + crossings like a running CV service
@@ -9,7 +9,7 @@ const KEY = process.env.INGEST_API_KEY;
 const args = process.argv.slice(2);
 const DAYS = Number(args[args.indexOf("--days") + 1]) || 7;
 const LIVE = args.includes("--live");
-const STATUS_MS = 30_000; // = STATUS_INTERVAL_SEC in zoo-monitor
+const STATUS_MS = 30_000; // = STATUS_INTERVAL_SEC in zoo-vision
 
 const CAM = {
   cashier: {

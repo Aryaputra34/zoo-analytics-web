@@ -12,7 +12,7 @@ paths:
   /api/events:
     post:
       summary: Ingest AI Events Batch
-      description: Ingests a batch of telemetry events from edge AI pipelines (zoo-monitor AnalyticsDispatcher).
+      description: Ingests a batch of telemetry events from edge AI pipelines (zoo-vision AnalyticsDispatcher).
       operationId: ingestEvents
       security:
         - BearerAuth: []
@@ -84,7 +84,7 @@ paths:
   /api/ai/health:
     get:
       summary: AI Engine Status & Camera List
-      description: Proxies to the zoo-monitor AI engine to retrieve active pipelines and processing FPS.
+      description: Proxies to the zoo-vision AI engine to retrieve active pipelines and processing FPS.
       operationId: getAiHealth
       responses:
         '200':
