@@ -27,18 +27,18 @@
 
 ## 1. Overview & Architecture
 
-`zoo-analytics-web` serves as the centralized operational dashboard and analytics ingestion gateway for the Taman Safari **zoo-monitor** ecosystem.
+`zoo-vision-fe` serves as the centralized operational dashboard and analytics ingestion gateway for the Taman Safari **zoo-vision** ecosystem.
 
 ```
 ┌────────────────────────────────────────────────────────┐
-│                   zoo-monitor (Edge AI)               │
+│                   zoo-vision (Edge AI)               │
 │  - Pipeline AI (YOLO, DeepSORT, Tripwires)             │
 │  - api_server.py (:8000)                               │
 └────────┬──────────────────────────────┬────────────────┘
          │ (POST /api/events)           │ (HTTP Proxy /api/ai/*)
          ▼                              ▼
 ┌────────────────────────────────────────────────────────┐
-│                zoo-analytics-web (:3000)               │
+│                zoo-vision-fe (:3000)               │
 │  - Ingest Engine (SQLite DB with WAL mode)             │
 │  - Server Components & Realtime Dashboards             │
 │  - Security Gateway (HMAC Cookie & Bearer Token)       │
@@ -51,7 +51,7 @@
 └───────────────────────┘      └─────────────────────────┘
 ```
 
-The browser only connects directly to `zoo-analytics-web`. Upstream connections to the AI engine (`:8000`) and the MediaMTX playback server (`:9996`) are proxied server-side, preventing internal network exposure.
+The browser only connects directly to `zoo-vision-fe`. Upstream connections to the AI engine (`:8000`) and the MediaMTX playback server (`:9996`) are proxied server-side, preventing internal network exposure.
 
 ---
 

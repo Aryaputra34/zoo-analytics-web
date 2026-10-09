@@ -4,7 +4,7 @@ import { SESSION_COOKIE, authEnabled, validSession } from "@/lib/session";
 const PUBLIC_ASSET = /\.(?:svg|png|jpg|jpeg|webp|ico)$/;
 
 // Login gate for every page and API route. Exceptions: the login page, public/ images, and the event
-// ingest from zoo-monitor (POST /api/events), which has its own bearer key (INGEST_API_KEY).
+// ingest from zoo-vision (POST /api/events), which has its own bearer key (INGEST_API_KEY).
 export function proxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
   const isApi = pathname.startsWith("/api/");

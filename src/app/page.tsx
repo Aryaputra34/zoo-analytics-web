@@ -547,7 +547,7 @@ export default async function Overview(props: PageProps<"/">) {
               })}
             </ul>
           ) : (
-            <Empty>Belum ada kamera yang mengirim laporan data. Silakan jalankan zoo-monitor atau npm run seed.</Empty>
+            <Empty>Belum ada kamera yang mengirim laporan data. Silakan jalankan zoo-vision atau npm run seed.</Empty>
           )}
         </Card>
 

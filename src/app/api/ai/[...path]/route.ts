@@ -1,4 +1,4 @@
-// Pass-through to the zoo-monitor AI engine (core/api_server.py): live preview, frames, event snapshots,
+// Pass-through to the zoo-vision AI engine (services/engine/core/api_server.py): live preview, frames, event snapshots,
 // health. Browsers only talk to the dashboard (behind its login); the engine's key stays server-side.
 const ENDPOINTS = new Set(["health", "frame", "stream", "snapshots"]);
 

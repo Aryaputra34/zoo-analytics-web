@@ -1,15 +1,15 @@
 # Zoo Analytics (web dashboard)
 
-Live and daily reporting for the **zoo-monitor** AI camera system: vehicle gate counts and plates,
+Live and daily reporting for the **zoo-vision** AI camera system: vehicle gate counts and plates,
 cashier desk presence, restaurant and table occupancy, and pony-ride departures. Also a live annotated
 camera view, and a snapshot plus recorded clip for every event.
 
 ```
-zoo-monitor pipelines ──AnalyticsDispatcher──▶ POST /api/events ──▶ data/zoo.db (SQLite)
+zoo-vision pipelines ──AnalyticsDispatcher──▶ POST /api/events ──▶ data/zoo.db (SQLite)
                                                                         ▲
                          dashboard pages (server-rendered, refresh every 5 s) ┘
 
-browser ──▶ /api/ai/*  ──▶ zoo-monitor AI engine :8000   (live preview, frames, event snapshots)
+browser ──▶ /api/ai/*  ──▶ zoo-vision AI engine :8000   (live preview, frames, event snapshots)
         ──▶ /api/clip  ──▶ MediaMTX playback :9996       (MP4 from 15 s before to 15 s after an event)
 ```
 
@@ -37,9 +37,9 @@ npm run seed -- --live        # then keep sending heartbeats/crossings like a ru
 Seeding is reproducible: re-running inserts only events that are new since the last run.
 Seeded events have ids starting with `seed_` / `live_`.
 
-### Real data from zoo-monitor
+### Real data from zoo-vision
 
-In `zoo-monitor/configs/app_config.yaml`:
+In `zoo-vision/services/engine/configs/app_config.yaml`:
 
 ```yaml
 analytics:
@@ -51,7 +51,7 @@ analytics:
 Then `python main.py` (all enabled cameras), or test a single video with
 `python test_video.py --video <file.mp4> --pipeline horse --analytics`.
 
-For a full command matrix across all 5 pipelines (gate, cashier, restaurant, tables, horse), see [08_TESTING_GUIDE.md](../zoo-monitor/docs/08_TESTING_GUIDE.md).
+For a full command matrix across all 5 pipelines (gate, cashier, restaurant, tables, horse), see [08_TESTING_GUIDE.md](https://github.com/Aryaputra34/zoo-vision/blob/main/docs/08_TESTING_GUIDE.md).
 
 ### Configuration (`.env.local`)
 
@@ -64,12 +64,12 @@ cp .env.example .env.local
 ```env
 # Login: one shared password for all users. Leave it out = no login (local development only).
 DASHBOARD_PASSWORD=some-long-password
-# POST /api/events then requires "Authorization: Bearer <key>" (= analytics.api_key in zoo-monitor)
+# POST /api/events then requires "Authorization: Bearer <key>" (= analytics.api_key in zoo-vision)
 INGEST_API_KEY=some-long-random-string
-# zoo-monitor AI engine API (api_server in app_config.yaml): /live page and event snapshots
+# zoo-vision AI engine API (api_server in app_config.yaml): /live page and event snapshots
 AI_ENGINE_URL=http://127.0.0.1:8000
 AI_ENGINE_API_KEY=same-as-api_server.api_key
-# MediaMTX playback server (zoo-monitor configs/mediamtx.yml): "play clip" on events
+# MediaMTX playback server (zoo-vision deploy/mediamtx.yml): "play clip" on events
 MEDIAMTX_PLAYBACK_URL=http://127.0.0.1:9996
 ```
 

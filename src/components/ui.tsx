@@ -371,7 +371,7 @@ export const Note = ({ children }: { children: ReactNode }) => (
   <p className="mt-4 text-xs font-semibold text-muted">{children}</p>
 );
 
-// Snapshot (zoo-monitor AI engine) + recorded clip (MediaMTX) of an event, when the event has them and the
+// Snapshot (zoo-vision AI engine) + recorded clip (MediaMTX) of an event, when the event has them and the
 // dashboard is configured to reach them (AI_ENGINE_URL / MEDIAMTX_PLAYBACK_URL).
 export function Evidence({ e }: { e: Ev }) {
   const { snapshot, recordingPath } = e.data;

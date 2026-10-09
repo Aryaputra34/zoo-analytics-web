@@ -13,7 +13,7 @@ function authorized(req: Request) {
   return got.length === want.length && timingSafeEqual(got, want);
 }
 
-// Ingest from zoo-monitor's AnalyticsDispatcher: {events: Event[]}.
+// Ingest from zoo-vision's AnalyticsDispatcher: {events: Event[]}.
 // Invalid events are skipped (not rejected) so one bad event never makes the sender retry a batch forever.
 export async function POST(req: Request) {
   if (!authorized(req)) return Response.json({ error: "unauthorized" }, { status: 401 });
